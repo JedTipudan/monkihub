@@ -29,6 +29,20 @@ const AuthController = {
     }
   },
 
+  async createAdmin(req, res) {
+    try {
+      const { username, password, email } = req.body;
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required' });
+      }
+      const user = await UserModel.create({ username, password, email: email || `${username}@monkihub.com`, role: 'admin' });
+      await LogModel.create({ action: 'ADMIN_CREATED', actor: req.user.username, detail: `Admin user "${username}" created by ${req.user.username}` });
+      res.status(201).json({ success: true, user: { username: user.username, role: user.role } });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
   async getUsers(req, res) {
     try {
       const users = await UserModel.findAll();
