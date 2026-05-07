@@ -734,16 +734,7 @@ body:not(.dark) .script-log { background: #1e2030; }
 .um-you { font-size: 0.7rem; color: var(--text-muted); font-weight: normal; }
 .um-protected { font-size: 0.72rem; color: var(--text-muted); }
 
-/* ── User Manager log area override ── */
-#script-log-usermanager {
-  background: var(--surface2);
-  font-family: inherit;
-  font-size: 0.85rem;
-  color: var(--text);
-  max-height: none;
-  padding: 0;
-  overflow: visible;
-}
+
 
 /* ── Scripts panel scrollable ── */
 #panel-scripts { overflow: hidden; }
@@ -760,10 +751,18 @@ body:not(.dark) .script-log { background: #1e2030; }
 .script-log { max-height: 160px; }
 
 /* ── User manager card scrollable ── */
+.script-log-users {
+  max-height: 420px;
+  overflow-y: auto;
+  background: var(--surface2);
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  padding: 0;
+}
 #script-log-usermanager {
-  max-height: 420px !important;
-  overflow-y: auto !important;
-  min-height: 60px;
+  max-height: 420px;
+  overflow-y: auto;
 }
 
 /* ── Script card compact when minimized ── */
