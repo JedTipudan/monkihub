@@ -11,7 +11,7 @@ const AuthController = {
       const user = await UserModel.validatePassword(username, password);
       if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
-      const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET, { expiresIn: '24h' });
+      const token = jwt.sign({ id: user.id, username: user.username, role: user.role, isSuperAdmin: user.isSuperAdmin }, SECRET, { expiresIn: '24h' });
       await LogModel.create({ action: 'USER_LOGIN', actor: username, detail: `${username} logged in` });
       res.json({ token, user });
     } catch (err) {
@@ -73,7 +73,7 @@ const AuthController = {
       res.json({
         id: raw.$.id, username: raw.username[0], role: raw.role[0],
         email: raw.email[0], displayName: raw.displayName?.[0] || '',
-        avatar: raw.avatar?.[0] || ''
+        avatar: raw.avatar?.[0] || '', isSuperAdmin: raw.isSuperAdmin?.[0] === 'true'
       });
     } catch (err) { res.status(500).json({ error: err.message }); }
   },

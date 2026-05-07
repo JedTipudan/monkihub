@@ -10,7 +10,8 @@ const UserModel = {
     const users = data.users?.user || [];
     return (Array.isArray(users) ? users : [users]).map(u => ({
       id: u.$.id, username: u.username[0], role: u.role[0], email: u.email[0],
-      displayName: u.displayName?.[0] || '', avatar: u.avatar?.[0] || '', createdAt: u.createdAt[0]
+      displayName: u.displayName?.[0] || '', avatar: u.avatar?.[0] || '', createdAt: u.createdAt[0],
+      isSuperAdmin: u.isSuperAdmin?.[0] === 'true'
     }));
   },
 
@@ -21,7 +22,7 @@ const UserModel = {
     return list.find(u => u.username[0] === username) || null;
   },
 
-  async create({ username, password, role = 'user', email }) {
+  async create({ username, password, role = 'user', email, isSuperAdmin = false }) {
     if (!username || !password || !email) throw new Error('username, password, email are required');
     const existing = await this.findByUsername(username);
     if (existing) throw new Error('Username already exists');
@@ -34,18 +35,19 @@ const UserModel = {
     const newUser = {
       $: { id: `user-${uuidv4().slice(0, 8)}` },
       username: [username], password: [hashed], role: [role],
-      email: [email], createdAt: [new Date().toISOString()]
+      email: [email], createdAt: [new Date().toISOString()],
+      isSuperAdmin: [String(isSuperAdmin)]
     };
     data.users.user.push(newUser);
     await writeXml(FILE, data);
-    return { id: newUser.$.id, username, role, email };
+    return { id: newUser.$.id, username, role, email, isSuperAdmin };
   },
 
   async validatePassword(username, password) {
     const user = await this.findByUsername(username);
     if (!user) return null;
     const match = await bcrypt.compare(password, user.password[0]);
-    return match ? { id: user.$.id, username: user.username[0], role: user.role[0] } : null;
+    return match ? { id: user.$.id, username: user.username[0], role: user.role[0], isSuperAdmin: user.isSuperAdmin?.[0] === 'true' } : null;
   },
 
   async updateProfile(username, { displayName, avatar, email }) {
@@ -61,7 +63,7 @@ const UserModel = {
     return {
       id: users[idx].$.id, username, role: users[idx].role[0],
       email: users[idx].email[0], displayName: users[idx].displayName?.[0] || '',
-      avatar: users[idx].avatar?.[0] || ''
+      avatar: users[idx].avatar?.[0] || '', isSuperAdmin: users[idx].isSuperAdmin?.[0] === 'true'
     };
   },
 

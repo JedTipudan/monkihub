@@ -6,6 +6,7 @@
     <role>admin</role>
     <email>admin@monkihub.local</email>
     <createdAt>2026-05-06T02:28:54.406Z</createdAt>
+    <isSuperAdmin>true</isSuperAdmin>
   </user>
   <user id="user-c35288a2">
     <username>jed</username>

@@ -1151,9 +1151,24 @@ async function runUserManager() {
   statusEl.className = 'script-status running';
   log.innerHTML = '<div style="padding:12px;color:#94a3b8">Loading users...</div>';
   try {
-    const users = await apiCall('GET', '/auth/users');
+    const users = await UserModel.findAll();
     const deletable = users.filter(u => u.username !== 'admin' && u.username !== currentUser.username);
     log.innerHTML = '';
+    
+    // Show Create Admin form only for Super Admin
+    if (currentUser.isSuperAdmin) {
+      const createForm = document.createElement('div');
+      createForm.className = 'um-create-admin';
+      createForm.innerHTML = '<div class="um-create-title">➕ Create New Admin</div>' +
+        '<div class="um-create-form">' +
+          '<input type="text" id="new-admin-username" placeholder="Username" class="um-input"/>' +
+          '<input type="password" id="new-admin-password" placeholder="Password" class="um-input"/>' +
+          '<input type="email" id="new-admin-email" placeholder="Email" class="um-input"/>' +
+          '<button class="btn-create-admin" onclick="createAdminUser()">Create Admin</button>' +
+        '</div>';
+      log.appendChild(createForm);
+    }
+    
     const summary = document.createElement('div');
     summary.className = 'um-summary';
     summary.innerHTML = 'Found <strong>' + users.length + '</strong> user(s) &nbsp;&middot;&nbsp; <strong>' + deletable.length + '</strong> deletable';
@@ -1167,7 +1182,9 @@ async function runUserManager() {
       const isSelf = u.username === currentUser.username;
       const tr = document.createElement('tr');
       const tdName = document.createElement('td');
-      tdName.innerHTML = '<strong>' + escHtml(u.username) + '</strong>' + (isSelf ? ' <span class="um-you">(you)</span>' : '');
+      tdName.innerHTML = '<strong>' + escHtml(u.username) + '</strong>' + 
+        (isSelf ? ' <span class="um-you">(you)</span>' : '') +
+        (u.isSuperAdmin ? ' <span class="um-super-badge">⭐ SUPER</span>' : '');
       const tdRole = document.createElement('td');
       tdRole.innerHTML = '<span class="role-tag ' + (u.role === 'admin' ? 'admin' : '') + '">' + u.role + '</span>';
       const tdEmail = document.createElement('td');
@@ -1198,6 +1215,28 @@ async function runUserManager() {
   statusEl.textContent = 'Stopped';
   statusEl.className = 'script-status';
   runBtn.disabled = false;
+}
+
+async function createAdminUser() {
+  const username = document.getElementById('new-admin-username')?.value.trim();
+  const password = document.getElementById('new-admin-password')?.value.trim();
+  const email = document.getElementById('new-admin-email')?.value.trim();
+  
+  if (!username || !password || !email) {
+    showToast('All fields are required', 'error');
+    return;
+  }
+  
+  try {
+    await apiCall('POST', '/auth/create-admin', { username, password, email });
+    showToast(`Admin "${username}" created successfully!`, 'success');
+    document.getElementById('new-admin-username').value = '';
+    document.getElementById('new-admin-password').value = '';
+    document.getElementById('new-admin-email').value = '';
+    runUserManager(); // Refresh the list
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
 }
 async function deleteUser(username) {
   const ok = await confirmModal(`Delete user "${username}"?\n\nThey will be locked out and cannot login anymore.`, 'Delete User');
