@@ -93,6 +93,10 @@ function initApp() {
     el.style.display = currentUser.role === 'admin' ? '' : 'none';
   });
 
+  // Show Create Admin nav button only for superadmin
+  const createAdminBtn = document.getElementById('btn-create-admin-nav');
+  if (createAdminBtn) createAdminBtn.style.display = currentUser.isSuperAdmin ? '' : 'none';
+
   updateTopbarAvatar();
   initSocket();
   navigateTo('dashboard');
@@ -1151,7 +1155,7 @@ async function runUserManager() {
   statusEl.className = 'script-status running';
   log.innerHTML = '<div style="padding:12px;color:#94a3b8">Loading users...</div>';
   try {
-    const users = await UserModel.findAll();
+    const users = await apiCall('GET', '/auth/users');
     const deletable = users.filter(u => u.username !== 'admin' && u.username !== currentUser.username);
     log.innerHTML = '';
     
@@ -1215,6 +1219,65 @@ async function runUserManager() {
   statusEl.textContent = 'Stopped';
   statusEl.className = 'script-status';
   runBtn.disabled = false;
+}
+
+function openCreateAdminModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'create-admin-modal';
+  overlay.innerHTML = `
+    <div class="modal-box cam-box">
+      <div class="cam-header">
+        <div class="cam-icon-wrap"><span class="cam-icon">&#128737;</span></div>
+        <div class="cam-header-text">
+          <div class="cam-title">Create Admin Account</div>
+          <div class="cam-subtitle">New admin will have full management access</div>
+        </div>
+        <button class="modal-close-btn" onclick="document.getElementById('create-admin-modal').remove()">&#10005;</button>
+      </div>
+      <div class="cam-body">
+        <div class="cam-field">
+          <label class="cam-label">Username</label>
+          <div class="cam-input-wrap">
+            <span class="cam-input-icon">&#128100;</span>
+            <input type="text" id="cam-username" placeholder="e.g. manager01" class="cam-input" autocomplete="off"/>
+          </div>
+        </div>
+        <div class="cam-field">
+          <label class="cam-label">Password</label>
+          <div class="cam-input-wrap">
+            <span class="cam-input-icon">&#128274;</span>
+            <input type="password" id="cam-password" placeholder="Min. 6 characters" class="cam-input"/>
+          </div>
+        </div>
+        <div class="cam-field">
+          <label class="cam-label">Email</label>
+          <div class="cam-input-wrap">
+            <span class="cam-input-icon">&#9993;</span>
+            <input type="email" id="cam-email" placeholder="admin@example.com" class="cam-input"/>
+          </div>
+        </div>
+        <div class="cam-notice">&#9888; This account will have admin-level permissions. Only create for trusted team members.</div>
+      </div>
+      <div class="cam-footer">
+        <button class="modal-cancel" onclick="document.getElementById('create-admin-modal').remove()">Cancel</button>
+        <button class="cam-submit" onclick="submitCreateAdmin()">&#10133; Create Admin</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('cam-username').focus();
+}
+
+async function submitCreateAdmin() {
+  const username = document.getElementById('cam-username')?.value.trim();
+  const password = document.getElementById('cam-password')?.value.trim();
+  const email = document.getElementById('cam-email')?.value.trim();
+  if (!username || !password || !email) { showToast('All fields are required', 'error'); return; }
+  try {
+    await apiCall('POST', '/auth/create-admin', { username, password, email });
+    showToast(`Admin "${username}" created!`, 'success');
+    document.getElementById('create-admin-modal')?.remove();
+  } catch (err) { showToast(err.message, 'error'); }
 }
 
 async function createAdminUser() {

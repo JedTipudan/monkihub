@@ -22,4 +22,12 @@
     <email>jeds@gmail.com</email>
     <createdAt>2026-05-06T02:57:28.273Z</createdAt>
   </user>
+  <user id="user-0716a2c4">
+    <username>janine</username>
+    <password>$2a$10$Dzo4speH42k/sxIAwrtMD.l4/iZDNSGR6a7j6Hp4NRdwjOBMj7Ef2</password>
+    <role>admin</role>
+    <email>janine@gmail.com</email>
+    <createdAt>2026-05-07T02:12:13.079Z</createdAt>
+    <isSuperAdmin>false</isSuperAdmin>
+  </user>
 </users>

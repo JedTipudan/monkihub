@@ -912,4 +912,22 @@
     <detail>admin logged in</detail>
     <timestamp>2026-05-07T00:49:29.253Z</timestamp>
   </log>
+  <log id="log-81e3ca2b">
+    <action>USER_LOGIN</action>
+    <actor>admin</actor>
+    <detail>admin logged in</detail>
+    <timestamp>2026-05-07T01:59:23.353Z</timestamp>
+  </log>
+  <log id="log-2ef7478c">
+    <action>ADMIN_CREATED</action>
+    <actor>admin</actor>
+    <detail>Admin user "janine" created by admin</detail>
+    <timestamp>2026-05-07T02:12:13.119Z</timestamp>
+  </log>
+  <log id="log-f5d9942f">
+    <action>USER_LOGIN</action>
+    <actor>janine</actor>
+    <detail>janine logged in</detail>
+    <timestamp>2026-05-07T02:12:17.756Z</timestamp>
+  </log>
 </logs>
