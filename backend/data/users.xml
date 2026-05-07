@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<users>
+  <user id="user-dee3f2bc">
+    <username>admin</username>
+    <password>$2a$10$dpVU1.MtliE5l2X6yAe09uHzTdzjTBWnBM5.yjnNE8oYlXrAWd5LC</password>
+    <role>admin</role>
+    <email>admin@monkihub.local</email>
+    <createdAt>2026-05-06T02:28:54.406Z</createdAt>
+  </user>
+  <user id="user-c35288a2">
+    <username>jed</username>
+    <password>$2a$10$WBvFA27H.Ks1W1L2GjB5xez270HvR6jZ63tRzrJEnl2SO3uo/b412</password>
+    <role>user</role>
+    <email>jed@gmail.com</email>
+    <createdAt>2026-05-06T02:29:59.603Z</createdAt>
+  </user>
+  <user id="user-5cfb03ab">
+    <username>jeds</username>
+    <password>$2a$10$ti22.0bvAOcOG9fj6Mi/lOjldw6s41DK8L1U8vJbzu/JeILsrw9Tu</password>
+    <role>user</role>
+    <email>jeds@gmail.com</email>
+    <createdAt>2026-05-06T02:57:28.273Z</createdAt>
+  </user>
+</users>

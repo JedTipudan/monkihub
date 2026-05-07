@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archive>
+  <tasks>
+    <task id="task-001">
+      <title>Set up project repository</title>
+      <description>Initialize Git repo and push initial commit</description>
+      <assignee>alice</assignee>
+      <status>done</status>
+      <priority>high</priority>
+      <createdAt>2025-01-01T08:00:00Z</createdAt>
+      <createdBy>admin</createdBy>
+    </task>
+  </tasks>
+  <messages>
+    <message id="msg-001">
+      <sender>admin</sender>
+      <receiver>all</receiver>
+      <content>Welcome to MonkiHub! 🐒 Let's collaborate.</content>
+      <timestamp>2025-01-01T08:00:00Z</timestamp>
+      <room>general</room>
+    </message>
+    <message id="msg-002">
+      <sender>alice</sender>
+      <receiver>all</receiver>
+      <content>Hey team! Ready to get things done.</content>
+      <timestamp>2025-01-01T08:05:00Z</timestamp>
+      <room>general</room>
+    </message>
+  </messages>
+</archive>

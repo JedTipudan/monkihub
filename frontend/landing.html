@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MonkiHub — Hire & Manage Virtual Assistants</title>
+  <meta name="description" content="MonkiHub connects managers with skilled Virtual Assistants. Post tasks, track work, and pay your team — all in one platform."/>
+  <link rel="icon" href="assets/logo.png" type="image/png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/landing.css"/>
+</head>
+<body>
+
+<!-- ── Skeleton Loader ── -->
+<div id="page-loader">
+  <div class="loader-inner">
+    <div class="loader-logo"><img src="assets/logo.png" alt="MonkiHub"/></div>
+    <div class="loader-skel-lines">
+      <div class="lsk lsk-title"></div>
+      <div class="lsk lsk-sub"></div>
+      <div class="lsk lsk-sub lsk-short"></div>
+      <div class="loader-skel-btns">
+        <div class="lsk lsk-btn"></div>
+        <div class="lsk lsk-btn lsk-btn-ghost"></div>
+      </div>
+    </div>
+    <div class="loader-skel-cards">
+      <div class="lsk-card"></div>
+      <div class="lsk-card"></div>
+      <div class="lsk-card"></div>
+    </div>
+    <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+  </div>
+</div>
+
+<!-- ── Navbar ── -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="#" class="nav-brand">
+      <img src="assets/logo.png" alt="MonkiHub"/>
+      <span>MonkiHub</span>
+    </a>
+    <div class="nav-links" id="nav-links">
+      <a href="#how-it-works">How It Works</a>
+      <a href="#roles">For VAs & Managers</a>
+      <a href="#open-roles">Open Roles</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="btn-nav-ghost">Sign In</a>
+      <a href="index.html" class="btn-nav-primary">Join Now — It's Free</a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-grid"></div>
+  </div>
+  <div class="container">
+    <div class="hero-badge reveal">
+      <span class="badge-dot"></span>
+      Now Hiring — Virtual Assistants Wanted
+    </div>
+    <h1 class="hero-title reveal">
+      Your Skills Deserve<br/>
+      <span class="gradient-text">Real Opportunities</span>
+    </h1>
+    <p class="hero-sub reveal">
+      MonkiHub connects talented Virtual Assistants with managers who need them.
+      Get assigned real tasks, submit your work, and get paid — all in one platform.
+    </p>
+    <div class="hero-actions reveal">
+      <a href="index.html" class="btn-hero-primary">
+        <span>Apply as a VA</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="index.html" class="btn-hero-ghost">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8L2 7h20l-6-4z"/></svg>
+        Post a Task
+      </a>
+    </div>
+    <div class="hero-stats reveal">
+      <div class="hero-stat"><span class="stat-num">100%</span><span class="stat-lbl">Remote Work</span></div>
+      <div class="hero-stat-div"></div>
+      <div class="hero-stat"><span class="stat-num">Fast</span><span class="stat-lbl">Task Assignment</span></div>
+      <div class="hero-stat-div"></div>
+      <div class="hero-stat"><span class="stat-num">Secure</span><span class="stat-lbl">Payments</span></div>
+      <div class="hero-stat-div"></div>
+      <div class="hero-stat"><span class="stat-num">Verified</span><span class="stat-lbl">Proof System</span></div>
+    </div>
+  </div>
+
+  <!-- Floating Job Cards Mockup -->
+  <div class="hero-mockup reveal">
+    <div class="mockup-window">
+      <div class="mockup-bar">
+        <span class="mockup-dot red"></span>
+        <span class="mockup-dot yellow"></span>
+        <span class="mockup-dot green"></span>
+        <span class="mockup-url">monkihub.app/tasks</span>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="ms-logo"></div>
+          <div class="ms-item ms-active"></div>
+          <div class="ms-item"></div>
+          <div class="ms-item"></div>
+          <div class="ms-item"></div>
+        </div>
+        <div class="mockup-main">
+          <div class="mockup-topbar">
+            <div class="mt-title"></div>
+            <div class="mt-actions">
+              <div class="mt-btn"></div>
+              <div class="mt-avatar"></div>
+            </div>
+          </div>
+          <div class="mockup-stats">
+            <div class="mstat"><div class="mstat-val"></div><div class="mstat-lbl"></div></div>
+            <div class="mstat"><div class="mstat-val"></div><div class="mstat-lbl"></div></div>
+            <div class="mstat"><div class="mstat-val"></div><div class="mstat-lbl"></div></div>
+            <div class="mstat"><div class="mstat-val"></div><div class="mstat-lbl"></div></div>
+          </div>
+          <div class="mockup-kanban">
+            <div class="mk-col">
+              <div class="mk-col-hdr"></div>
+              <div class="mk-card mk-card-high"></div>
+              <div class="mk-card"></div>
+            </div>
+            <div class="mk-col">
+              <div class="mk-col-hdr"></div>
+              <div class="mk-card mk-card-med"></div>
+            </div>
+            <div class="mk-col">
+              <div class="mk-col-hdr mk-col-review"></div>
+              <div class="mk-card mk-card-review"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-float mockup-float-1"><span>🎯</span> New task assigned to you</div>
+    <div class="mockup-float mockup-float-2"><span>✅</span> Work approved by admin</div>
+    <div class="mockup-float mockup-float-3"><span>💸</span> Payment of ₱1,500 released</div>
+  </div>
+</section>
+
+<!-- ── Live Job Counter ── -->
+<section class="trusted">
+  <div class="container">
+    <p class="trusted-label">What's happening on MonkiHub right now</p>
+    <div class="trusted-logos">
+      <div class="tech-pill">📋 Tasks Being Assigned</div>
+      <div class="tech-pill">✅ Work Being Approved</div>
+      <div class="tech-pill">💬 Messages Being Sent</div>
+      <div class="tech-pill">💰 Payments Being Processed</div>
+      <div class="tech-pill">📊 Reports Being Generated</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Dual CTA — Two Paths ── -->
+<section class="two-paths" id="roles">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Who Is This For?</div>
+      <h2>Two roles. One platform.</h2>
+      <p>Whether you're looking for work or looking to hire — MonkiHub has you covered.</p>
+    </div>
+    <div class="paths-grid">
+      <div class="path-card path-va reveal">
+        <div class="path-icon">👩‍💻</div>
+        <div class="path-tag">For Virtual Assistants</div>
+        <h3>Find Work &amp; Get Paid</h3>
+        <p>Join a manager's team, receive task assignments, submit your completed work with proof, and request payment — all tracked transparently.</p>
+        <ul class="path-list">
+          <li><span class="path-check">✓</span> See your assigned tasks instantly</li>
+          <li><span class="path-check">✓</span> Upload proof of completed work</li>
+          <li><span class="path-check">✓</span> Request payment via GCash, Maya, Bank</li>
+          <li><span class="path-check">✓</span> Chat directly with your manager</li>
+          <li><span class="path-check">✓</span> Track your full payment history</li>
+        </ul>
+        <a href="index.html" class="btn-path-va">Apply as a VA →</a>
+      </div>
+      <div class="path-card path-manager reveal">
+        <div class="path-icon">🧑‍💼</div>
+        <div class="path-tag">For Managers &amp; Agencies</div>
+        <h3>Hire &amp; Manage VAs</h3>
+        <p>Build your VA team, assign tasks with reference images, review submitted work, approve or reject, and process payroll — all from one dashboard.</p>
+        <ul class="path-list">
+          <li><span class="path-check">✓</span> Create and assign tasks instantly</li>
+          <li><span class="path-check">✓</span> Attach reference images to tasks</li>
+          <li><span class="path-check">✓</span> Approve or reject submitted work</li>
+          <li><span class="path-check">✓</span> Process payments with proof</li>
+          <li><span class="path-check">✓</span> Generate performance reports</li>
+        </ul>
+        <a href="index.html" class="btn-path-manager">Start Hiring →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ── -->
+<section class="how-it-works" id="how-it-works">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">How It Works</div>
+      <h2>From hired to paid in 3 steps</h2>
+      <p>Simple, transparent, and built for remote work.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Get Registered</h3>
+          <p>Manager creates your account and adds you to the team. You log in and see your personal dashboard — only your tasks, only your payments.</p>
+          <div class="step-code">
+            <span class="code-comment"># Your private dashboard</span><br/>
+            My Tasks → assigned to you<br/>
+            My Payments → your history<br/>
+            Chat → direct with manager
+          </div>
+        </div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step reveal">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Do the Work</h3>
+          <p>Tasks appear on your board with full details and reference images. Move them to In Progress, complete the work, then submit with proof.</p>
+          <div class="step-code">
+            <span class="code-comment"># Task workflow</span><br/>
+            To Do → In Progress<br/>
+            → Submit Proof<br/>
+            → Pending Review
+          </div>
+        </div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step reveal">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Get Paid</h3>
+          <p>Once your work is approved, submit a payment request. Your manager processes it with proof of payment — GCash, Maya, Bank, or PayPal.</p>
+          <div class="step-code">
+            <span class="code-comment"># Payment methods</span><br/>
+            GCash / Maya<br/>
+            Bank Transfer<br/>
+            PayPal
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Open Roles / Sample Tasks ── -->
+<section class="open-roles" id="open-roles">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Open Roles</div>
+      <h2>Tasks waiting to be filled</h2>
+      <p>Managers post tasks daily. Register now and get assigned to work that matches your skills.</p>
+    </div>
+    <div class="roles-grid">
+      <div class="role-card reveal">
+        <div class="role-header">
+          <div class="role-icon">📝</div>
+          <div class="role-meta">
+            <span class="role-priority high">High Priority</span>
+            <span class="role-status open">Open</span>
+          </div>
+        </div>
+        <h3 class="role-title">Content Writing &amp; Copywriting</h3>
+        <p class="role-desc">Write blog posts, product descriptions, and social media captions. Reference materials provided.</p>
+        <div class="role-tags">
+          <span>Writing</span><span>SEO</span><span>Social Media</span>
+        </div>
+        <div class="role-footer">
+          <span class="role-pay">₱500–₱1,500 / task</span>
+          <a href="index.html" class="btn-role">Apply Now</a>
+        </div>
+      </div>
+      <div class="role-card reveal">
+        <div class="role-header">
+          <div class="role-icon">📊</div>
+          <div class="role-meta">
+            <span class="role-priority medium">Medium Priority</span>
+            <span class="role-status open">Open</span>
+          </div>
+        </div>
+        <h3 class="role-title">Data Entry &amp; Research</h3>
+        <p class="role-desc">Organize spreadsheets, research competitors, and compile reports. Step-by-step instructions included.</p>
+        <div class="role-tags">
+          <span>Excel</span><span>Research</span><span>Data</span>
+        </div>
+        <div class="role-footer">
+          <span class="role-pay">₱300–₱800 / task</span>
+          <a href="index.html" class="btn-role">Apply Now</a>
+        </div>
+      </div>
+      <div class="role-card reveal">
+        <div class="role-header">
+          <div class="role-icon">🎨</div>
+          <div class="role-meta">
+            <span class="role-priority high">High Priority</span>
+            <span class="role-status open">Open</span>
+          </div>
+        </div>
+        <h3 class="role-title">Graphic Design &amp; Creatives</h3>
+        <p class="role-desc">Create social media graphics, banners, and thumbnails. Brand guidelines and reference images provided.</p>
+        <div class="role-tags">
+          <span>Canva</span><span>Design</span><span>Branding</span>
+        </div>
+        <div class="role-footer">
+          <span class="role-pay">₱800–₱2,000 / task</span>
+          <a href="index.html" class="btn-role">Apply Now</a>
+        </div>
+      </div>
+      <div class="role-card reveal">
+        <div class="role-header">
+          <div class="role-icon">📱</div>
+          <div class="role-meta">
+            <span class="role-priority low">Low Priority</span>
+            <span class="role-status open">Open</span>
+          </div>
+        </div>
+        <h3 class="role-title">Social Media Management</h3>
+        <p class="role-desc">Schedule posts, reply to comments, and grow engagement across platforms. Content calendar provided.</p>
+        <div class="role-tags">
+          <span>Instagram</span><span>Facebook</span><span>TikTok</span>
+        </div>
+        <div class="role-footer">
+          <span class="role-pay">₱1,000–₱3,000 / month</span>
+          <a href="index.html" class="btn-role">Apply Now</a>
+        </div>
+      </div>
+      <div class="role-card reveal">
+        <div class="role-header">
+          <div class="role-icon">🛒</div>
+          <div class="role-meta">
+            <span class="role-priority medium">Medium Priority</span>
+            <span class="role-status open">Open</span>
+          </div>
+        </div>
+        <h3 class="role-title">E-Commerce Product Listing</h3>
+        <p class="role-desc">Upload and optimize product listings on Shopee, Lazada, or Amazon. Templates and examples provided.</p>
+        <div class="role-tags">
+          <span>Shopee</span><span>Lazada</span><span>Amazon</span>
+        </div>
+        <div class="role-footer">
+          <span class="role-pay">₱400–₱1,000 / task</span>
+          <a href="index.html" class="btn-role">Apply Now</a>
+        </div>
+      </div>
+      <div class="role-card reveal">
+        <div class="role-header">
+          <div class="role-icon">🎧</div>
+          <div class="role-meta">
+            <span class="role-priority high">High Priority</span>
+            <span class="role-status open">Open</span>
+          </div>
+        </div>
+        <h3 class="role-title">Customer Support VA</h3>
+        <p class="role-desc">Handle customer inquiries, resolve issues, and escalate when needed. Scripts and FAQs provided.</p>
+        <div class="role-tags">
+          <span>Support</span><span>Chat</span><span>Email</span>
+        </div>
+        <div class="role-footer">
+          <span class="role-pay">₱1,500–₱4,000 / month</span>
+          <a href="index.html" class="btn-role">Apply Now</a>
+        </div>
+      </div>
+    </div>
+    <div class="roles-cta reveal">
+      <p>These are sample roles. Once you join, your manager assigns tasks directly to you.</p>
+      <a href="index.html" class="btn-hero-primary">Register &amp; Get Assigned →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Testimonials ── -->
+<section class="testimonials">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">Success Stories</div>
+      <h2>VAs &amp; Managers love MonkiHub</h2>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p>"I was looking for remote work and my manager set me up on MonkiHub. I can see exactly what tasks I need to do, submit my work, and request payment. It's so organized."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#7c6af7">SA</div>
+          <div><strong>Sarah Aquino</strong><span>Virtual Assistant, Quezon City</span></div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p>"As a manager, I used to chase my VAs on Messenger. Now I just assign tasks here, they submit proof, I approve, and pay. Everything is documented. Zero confusion."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#34d399;color:#0f1117">MC</div>
+          <div><strong>Mark Castillo</strong><span>Agency Owner, Cebu</span></div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <p>"The proof submission system keeps me accountable. I upload a screenshot of my finished work, my manager approves it, and my payment is processed the same day."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#fbbf24;color:#0f1117">JL</div>
+          <div><strong>Jana Lim</strong><span>Freelance VA, Davao</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="faq" id="faq">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">FAQ</div>
+      <h2>Got questions? We have answers.</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How do I join as a Virtual Assistant?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">Click "Apply as a VA" and register an account. Your manager will assign tasks to you directly. You'll see them on your personal Kanban board the moment they're created.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How do I get paid for completed work?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">Once your task is approved by your manager, go to the Payroll panel and submit a payment request. Enter your GCash, Maya, Bank, or PayPal details and your manager will process it with proof of payment.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Can I see other VAs' tasks or salaries?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">No. Your dashboard is private. You only see tasks assigned to you and your own payment history. Only the admin/manager has full visibility across the team.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What happens if my work gets rejected?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">Your manager will provide a reason for the rejection. The task goes back to "In Progress" so you can fix it and resubmit. You can also message your manager directly to clarify.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          I'm a manager. How do I post tasks?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">Log in as admin, go to the Task Board, and use the "Create New Task" form. Fill in the title, description, assignee (your VA's username), priority, and optionally attach a reference image so your VA knows exactly what to do.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-card reveal">
+      <div class="cta-orb cta-orb-1"></div>
+      <div class="cta-orb cta-orb-2"></div>
+      <div class="cta-dual">
+        <div class="cta-side">
+          <div class="cta-side-icon">👩‍💻</div>
+          <h3>Looking for work?</h3>
+          <p>Register as a VA and start receiving task assignments today.</p>
+          <a href="index.html" class="btn-hero-primary">Apply as a VA →</a>
+        </div>
+        <div class="cta-divider"></div>
+        <div class="cta-side">
+          <div class="cta-side-icon">🧑‍💼</div>
+          <h3>Looking to hire?</h3>
+          <p>Set up your team and start assigning tasks in minutes.</p>
+          <a href="index.html" class="btn-hero-ghost">Start Hiring →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="assets/logo.png" alt="MonkiHub"/>
+        <span>MonkiHub</span>
+        <p>The VA recruitment and management platform. Get hired, do great work, and get paid — all in one place.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>For VAs</h4>
+          <a href="index.html">Register Now</a>
+          <a href="#open-roles">Open Roles</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <div class="footer-col">
+          <h4>For Managers</h4>
+          <a href="index.html">Start Hiring</a>
+          <a href="#roles">Features</a>
+          <a href="#how-it-works">Setup Guide</a>
+          <a href="index.html">Admin Login</a>
+        </div>
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <a href="#">Task Board</a>
+          <a href="#">Payroll</a>
+          <a href="#">Messaging</a>
+          <a href="#">Reports</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 MonkiHub — VA Recruitment &amp; Management Platform</span>
+      <span>v1.0 MVP</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/landing.js"></script>
+</body>
+</html>

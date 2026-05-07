@@ -1,0 +1,26 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "MonkiHub Backend - Team Collaboration Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "consumer": "node scripts/consumer.js",
+    "notifier": "node scripts/notifier.js",
+    "archiver": "node scripts/archiver.js",
+    "reporter": "node scripts/reporter.js",
+    "report:once": "node scripts/reporter.js --once"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0",
+    "xml2js": "^0.6.2",
+    "saxon-js": "^2.6.0",
+    "ioredis": "^5.3.2",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.7.2",
+    "fs-extra": "^11.2.0"
+  }
+}

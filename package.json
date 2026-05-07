@@ -1,0 +1,13 @@
+{
+  "name": "monkihub",
+  "version": "1.0.0",
+  "description": "MonkiHub - Team Collaboration & Task Management Platform",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "cd backend && npm install && node server.js",
+    "install": "cd backend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
