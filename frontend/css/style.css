@@ -759,10 +759,10 @@ body:not(.dark) .script-log { background: #1e2030; }
 /* ── Collapse all script logs by default to save space ── */
 .script-log { max-height: 160px; }
 
-/* ── User manager card always fully visible ── */
+/* ── User manager card scrollable ── */
 #script-log-usermanager {
-  max-height: none !important;
-  overflow: visible !important;
+  max-height: 420px !important;
+  overflow-y: auto !important;
   min-height: 60px;
 }
 
