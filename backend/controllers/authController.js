@@ -56,10 +56,24 @@ const AuthController = {
   async deleteUser(req, res) {
     try {
       const { username } = req.params;
-      if (username === 'admin') return res.status(403).json({ error: 'Cannot delete the admin account' });
       if (username === req.user.username) return res.status(403).json({ error: 'Cannot delete your own account' });
+
+      const target = await UserModel.findByUsername(username);
+      if (!target) return res.status(404).json({ error: 'User not found' });
+
+      const targetRole = target.role[0];
+      const targetIsSuperAdmin = target.isSuperAdmin?.[0] === 'true';
+
+      // Protect the super admin account entirely
+      if (targetIsSuperAdmin) return res.status(403).json({ error: 'Cannot delete the Super Admin account' });
+
+      // Only super admin can delete other admins
+      if (targetRole === 'admin' && !req.user.isSuperAdmin) {
+        return res.status(403).json({ error: 'Only Super Admin can delete admin accounts' });
+      }
+
       await UserModel.delete(username);
-      await LogModel.create({ action: 'USER_DELETED', actor: req.user.username, detail: `User "${username}" deleted by admin` });
+      await LogModel.create({ action: 'USER_DELETED', actor: req.user.username, detail: `User "${username}" deleted by ${req.user.username}` });
       res.json({ success: true });
     } catch (err) {
       res.status(400).json({ error: err.message });

@@ -1146,7 +1146,6 @@ async function runUserManager() {
   const runBtn = document.getElementById('btn-run-usermanager');
   const statusEl = document.getElementById('script-status-usermanager');
   if (!log) return;
-  // Minimize all other script cards to make room
   Object.keys(scriptsData).forEach(function(n) {
     if (n !== 'usermanager' && !scriptMinimized[n]) toggleScriptMinimize(n);
   });
@@ -1156,14 +1155,12 @@ async function runUserManager() {
   log.innerHTML = '<div style="padding:12px;color:#94a3b8">Loading users...</div>';
   try {
     const users = await apiCall('GET', '/auth/users');
-    const deletable = users.filter(u => u.username !== 'admin' && u.username !== currentUser.username);
+    const deletable = users.filter(u => !u.isSuperAdmin && u.username !== currentUser.username);
     log.innerHTML = '';
-    
-    // Show Create Admin form only for Super Admin
     if (currentUser.isSuperAdmin) {
       const createForm = document.createElement('div');
       createForm.className = 'um-create-admin';
-      createForm.innerHTML = '<div class="um-create-title">➕ Create New Admin</div>' +
+      createForm.innerHTML = '<div class="um-create-title">Create New Admin</div>' +
         '<div class="um-create-form">' +
           '<input type="text" id="new-admin-username" placeholder="Username" class="um-input"/>' +
           '<input type="password" id="new-admin-password" placeholder="Password" class="um-input"/>' +
@@ -1172,7 +1169,6 @@ async function runUserManager() {
         '</div>';
       log.appendChild(createForm);
     }
-    
     const summary = document.createElement('div');
     summary.className = 'um-summary';
     summary.innerHTML = 'Found <strong>' + users.length + '</strong> user(s) &nbsp;&middot;&nbsp; <strong>' + deletable.length + '</strong> deletable';
@@ -1182,13 +1178,14 @@ async function runUserManager() {
     table.innerHTML = '<thead><tr><th>Username</th><th>Role</th><th>Email</th><th>Joined</th><th></th></tr></thead>';
     const tbody = document.createElement('tbody');
     users.forEach(function(u) {
-      const isAdmin = u.username === 'admin';
       const isSelf = u.username === currentUser.username;
+      const isSuperAdminTarget = u.isSuperAdmin === true;
+      const isAdminTarget = u.role === 'admin';
       const tr = document.createElement('tr');
       const tdName = document.createElement('td');
-      tdName.innerHTML = '<strong>' + escHtml(u.username) + '</strong>' + 
+      tdName.innerHTML = '<strong>' + escHtml(u.username) + '</strong>' +
         (isSelf ? ' <span class="um-you">(you)</span>' : '') +
-        (u.isSuperAdmin ? ' <span class="um-super-badge">⭐ SUPER</span>' : '');
+        (isSuperAdminTarget ? ' <span class="um-super-badge">SUPER</span>' : '');
       const tdRole = document.createElement('td');
       tdRole.innerHTML = '<span class="role-tag ' + (u.role === 'admin' ? 'admin' : '') + '">' + u.role + '</span>';
       const tdEmail = document.createElement('td');
@@ -1196,10 +1193,12 @@ async function runUserManager() {
       const tdJoined = document.createElement('td');
       tdJoined.textContent = new Date(u.createdAt).toLocaleDateString();
       const tdAction = document.createElement('td');
-      if (isAdmin || isSelf) {
+      const cantDelete = isSelf || isSuperAdminTarget;
+      const noPermission = isAdminTarget && !currentUser.isSuperAdmin;
+      if (cantDelete || noPermission) {
         const span = document.createElement('span');
         span.className = 'um-protected';
-        span.textContent = 'Protected';
+        span.textContent = isSuperAdminTarget ? 'Super Admin' : (isSelf ? 'You' : 'Protected');
         tdAction.appendChild(span);
       } else {
         const btn = document.createElement('button');
