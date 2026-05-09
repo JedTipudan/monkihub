@@ -31,12 +31,14 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - Mobile-friendly notifications
 
 ### 📋 Task Management
-- Kanban board (To Do, In Progress, Pending Review, Done)
-- Task assignment with reference images
+- Kanban board (To Do, In Progress, Pending Review)
+- Task assignment with reference images upload
+- Task due dates with calendar visualization
 - Proof-of-work submission system
 - Admin approval/rejection workflow
-- Task history tracking
+- Approval history panel for completed tasks
 - Priority levels (High, Medium, Low)
+- Visual task status indicators
 
 ### 💰 Payment System
 - Payment request submission (GCash, Maya, Bank Transfer, PayPal)
@@ -69,6 +71,13 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - User registration and authentication
 - Profile management with avatar upload
 - Admin user creation from UI (Super Admin only)
+
+### 📅 Calendar & Scheduling
+- Visual calendar with task due dates
+- Color-coded task status (overdue, due soon, on track, completed)
+- Monthly view with navigation
+- Quick task overview on calendar dates
+- Due date tracking and alerts
 
 ---
 
