@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/UserModel');
 const LogModel = require('../models/LogModel');
+const { trackFailedAttempt } = require('../middleware/security');
 
 const SECRET = process.env.JWT_SECRET || 'monkihub_secret_2025'; // TODO: set JWT_SECRET env var in production
 
@@ -9,12 +10,18 @@ const AuthController = {
     try {
       const { username, password } = req.body;
       const user = await UserModel.validatePassword(username, password);
-      if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+      if (!user) {
+        // Track failed login attempt
+        trackFailedAttempt(req.ip);
+        await LogModel.create({ action: 'LOGIN_FAILED', actor: username || 'unknown', detail: `Failed login attempt from IP: ${req.ip}` });
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
 
       const token = jwt.sign({ id: user.id, username: user.username, role: user.role, isSuperAdmin: user.isSuperAdmin }, SECRET, { expiresIn: '24h' });
       await LogModel.create({ action: 'USER_LOGIN', actor: username, detail: `${username} logged in` });
       res.json({ token, user });
     } catch (err) {
+      trackFailedAttempt(req.ip);
       res.status(500).json({ error: err.message });
     }
   },
