@@ -1062,4 +1062,10 @@
     <detail>admin logged in</detail>
     <timestamp>2026-05-09T04:18:04.104Z</timestamp>
   </log>
+  <log id="log-e4c15654">
+    <action>USER_LOGIN</action>
+    <actor>jed</actor>
+    <detail>jed logged in</detail>
+    <timestamp>2026-05-09T06:29:45.590Z</timestamp>
+  </log>
 </logs>

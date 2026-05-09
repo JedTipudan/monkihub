@@ -7,8 +7,28 @@ const PaymentController = {
   async submit(req, res) {
     try {
       const { method, accountName, accountNumber, amount, note } = req.body;
+
+      // Validate amount
+      const parsedAmount = parseFloat(amount);
+      if (isNaN(parsedAmount) || parsedAmount < 1) return res.status(400).json({ error: 'Amount must be at least ₱1' });
+      if (parsedAmount > 50000) return res.status(400).json({ error: 'Amount cannot exceed ₱50,000 per request' });
+
+      const all = await PaymentModel.findByUsername(req.user.username);
+
+      // Block if pending request exists
+      if (all.some(p => p.status === 'pending')) {
+        return res.status(400).json({ error: 'You already have a pending payment request. Wait for it to be processed.' });
+      }
+
+      // Rate limit: max 5 requests per day
+      const today = new Date().toDateString();
+      const todayCount = all.filter(p => new Date(p.submittedAt).toDateString() === today).length;
+      if (todayCount >= 5) {
+        return res.status(429).json({ error: 'Daily limit reached. You can submit at most 5 payment requests per day.' });
+      }
+
       const payment = await PaymentModel.create({
-        username: req.user.username, method, accountName, accountNumber, amount, note
+        username: req.user.username, method, accountName, accountNumber, amount: parsedAmount.toFixed(2), note
       });
       await LogModel.create({ action: 'PAYMENT_SUBMITTED', actor: req.user.username, detail: `${req.user.username} requested payment of ${amount} via ${method}` });
       req.io.emit('payment:new', payment);
