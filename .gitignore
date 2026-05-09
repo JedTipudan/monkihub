@@ -2,3 +2,14 @@ node_modules/
 .env
 *.log
 .DS_Store
+
+# Exclude data files but keep structure
+backend/data/*.xml
+!backend/data/.gitkeep
+
+# Exclude uploaded files
+backend/uploads/
+
+# Exclude temporary files
+temp_*.html
+.vscode/
