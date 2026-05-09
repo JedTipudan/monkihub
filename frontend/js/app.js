@@ -877,6 +877,86 @@ async function sendMessage() {
   input.value = '';
   try {
     const result = await apiCall('POST', '/messages', { content, receiver: chatTarget });
+    if (result.status === 'delivered') {
+      appendMessage({ sender: currentUser.username, receiver: chatTarget, content, room: [currentUser.username, chatTarget].sort().join(':'), timestamp: new Date().toISOString() });
+    }
+  } catch (err) {
+    showToast(err.message, 'error');
+    input.value = content;
+  }
+}
+// Check for unread messages from all users
+    await checkAllUnreadMessages(others);
+    // Restore any existing unread badges after re-render
+    Object.keys(unreadCounts).forEach(sender => updateUnreadBadge(sender));
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function openDM(username) {
+  chatTarget = username;
+  // Clear unread for this sender
+  unreadCounts[username] = 0;
+  updateUnreadBadge(username);
+  updateChatNavBadge();
+  document.querySelectorAll('.room-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.username === username));
+  document.getElementById('chat-room-name').textContent = username;
+  document.getElementById('chat-room-sub').textContent = 'Direct Message';
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('send-btn');
+  input.disabled = false;
+  btn.disabled = false;
+  input.focus();
+  const room = [currentUser.username, username].sort().join(':');
+  if (socket) socket.emit('join', room);
+  await loadMessages();
+  // After loading messages, check for unread and create notifications
+  checkForUnreadMessages();
+}
+
+async function loadMessages() {
+  if (!chatTarget) return;
+  try {
+    const messages = await apiCall('GET', `/messages/conversation/${chatTarget}`);
+    const container = document.getElementById('chat-messages');
+    container.innerHTML = '';
+    if (!messages.length) {
+      container.innerHTML = '<div class="empty-state"><div class="emoji">💬</div><p>No messages yet. Say hello!</p></div>';
+      return;
+    }
+    messages.forEach(m => appendMessage(m, false));
+    container.scrollTop = container.scrollHeight;
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+function appendMessage(msg, scroll = true) {
+  const container = document.getElementById('chat-messages');
+  const empty = container.querySelector('.empty-state');
+  if (empty) empty.remove();
+  const isOwn = msg.sender === currentUser.username;
+  const initials = msg.sender.slice(0, 2).toUpperCase();
+  const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const el = document.createElement('div');
+  el.className = `chat-msg ${isOwn ? 'own' : ''}`;
+  el.innerHTML = `
+    <div class="msg-avatar ${msg.sender === 'admin' ? 'admin-av' : ''}">${initials}</div>
+    <div class="msg-body">
+      <div class="msg-sender">${msg.sender}</div>
+      <div class="msg-bubble">${escHtml(msg.content)}</div>
+      <div class="msg-time">${time}</div>
+    </div>`;
+  container.appendChild(el);
+  if (scroll) container.scrollTop = container.scrollHeight;
+}
+
+async function sendMessage() {
+  if (!chatTarget) return;
+  const input = document.getElementById('chat-input');
+  const content = input.value.trim();
+  if (!content) return;
+  input.value = '';
+  try {
+    const result = await apiCall('POST', '/messages', { content, receiver: chatTarget });
     // If fallback mode (status 201), append immediately
     // If Kafka mode (status 202/queued), consumer will deliver via socket
     if (result.status === 'delivered') {

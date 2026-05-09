@@ -1,6 +1,7 @@
 const LogModel = require('../models/LogModel');
 const { publishMessage, isKafkaAvailable, subscribeInMemory } = require('../services/brokerService');
 const MessageModel = require('../models/MessageModel');
+const { isConsumerRunning } = require('./scriptController');
 
 // In-memory fallback: if Kafka is not available, consumer.js won't run,
 // so we handle delivery directly here only in fallback mode.
@@ -61,11 +62,13 @@ const MessageController = {
       };
 
       if (isKafkaAvailable()) {
-        // ── Kafka mode: publish to topic, consumer will save + deliver ──
+        // ── Kafka mode: only publish if consumer is running ──
+        if (!isConsumerRunning()) {
+          return res.status(503).json({ error: 'Consumer is offline. Start the Message Consumer script to send messages.' });
+        }
         await publishMessage('monkihub_messages', payload);
         console.log(`[KAFKA] Published message from ${payload.sender} to topic`);
         await LogModel.create({ action: 'MESSAGE_PUBLISHED', actor: req.user.username, detail: `Message published to Kafka for ${receiver}` });
-        // Return a pending response — consumer will deliver via Socket.IO
         res.status(202).json({ status: 'queued', message: 'Message sent to Kafka broker' });
       } else {
         // ── Fallback mode: in-memory broker, saves + delivers directly ──

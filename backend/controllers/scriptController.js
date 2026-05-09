@@ -78,4 +78,9 @@ const ScriptController = {
   }
 };
 
+function isConsumerRunning() {
+  return !!running['consumer'];
+}
+
 module.exports = ScriptController;
+module.exports.isConsumerRunning = isConsumerRunning;
