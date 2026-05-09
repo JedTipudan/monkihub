@@ -79,11 +79,12 @@ const AuthController = {
       const { username } = req.params;
       if (username === req.user.username) return res.status(403).json({ error: 'Cannot delete your own account' });
 
-      const target = await UserModel.findByUsername(username);
+      const users = await UserModel.findAll();
+      const target = users.find(u => u.username === username);
       if (!target) return res.status(404).json({ error: 'User not found' });
 
-      const targetRole = target.role[0];
-      const targetIsSuperAdmin = target.isSuperAdmin?.[0] === 'true';
+      const targetRole = target.role;
+      const targetIsSuperAdmin = target.isSuperAdmin === true;
 
       // Protect the super admin account entirely
       if (targetIsSuperAdmin) return res.status(403).json({ error: 'Cannot delete the Super Admin account' });
@@ -103,13 +104,10 @@ const AuthController = {
 
   async getProfile(req, res) {
     try {
-      const raw = await UserModel.findByUsername(req.user.username);
-      if (!raw) return res.status(404).json({ error: 'User not found' });
-      res.json({
-        id: raw.$.id, username: raw.username[0], role: raw.role[0],
-        email: raw.email[0], displayName: raw.displayName?.[0] || '',
-        avatar: raw.avatar?.[0] || '', isSuperAdmin: raw.isSuperAdmin?.[0] === 'true'
-      });
+      const users = await UserModel.findAll();
+      const user = users.find(u => u.username === req.user.username);
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      res.json(user);
     } catch (err) { res.status(500).json({ error: err.message }); }
   },
 
