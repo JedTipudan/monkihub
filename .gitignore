@@ -3,8 +3,12 @@ node_modules/
 *.log
 .DS_Store
 
-# Exclude data files but keep structure
-backend/data/*.xml
+# Exclude data files but keep structure (users.xml tracked for persistence)
+backend/data/tasks.xml
+backend/data/messages.xml
+backend/data/payments.xml
+backend/data/logs.xml
+backend/data/archive.xml
 !backend/data/.gitkeep
 
 # Exclude uploaded files
