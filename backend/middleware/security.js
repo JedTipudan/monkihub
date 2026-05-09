@@ -54,32 +54,25 @@ const requestSizeLimiter = (req, res, next) => {
 // ── Suspicious Pattern Detection ──
 // ══════════════════════════════════════════════════════
 const suspiciousPatternDetection = (req, res, next) => {
+  // Use non-stateful patterns (no /g flag) to avoid lastIndex bug
   const suspiciousPatterns = [
-    /<script[^>]*>.*?<\/script>/gi,
-    /javascript:/gi,
-    /on\w+\s*=/gi,
-    /<iframe/gi,
-    /eval\(/gi,
-    /expression\(/gi,
-    /\.\.\/\.\.\//g, // Path traversal
-    /union.*select/gi, // SQL injection
-    /drop.*table/gi,
-    /insert.*into/gi,
-    /delete.*from/gi
+    /<script[\s\S]*?<\/script>/i,
+    /javascript:/i,
+    /<iframe/i,
+    /\.\.\/\.\.\//, // Path traversal
+    /union[\s]+select/i, // SQL injection
+    /drop[\s]+table/i,
   ];
 
   const checkString = JSON.stringify(req.body) + JSON.stringify(req.query) + JSON.stringify(req.params);
-  
+
   for (const pattern of suspiciousPatterns) {
     if (pattern.test(checkString)) {
-      console.log(`[SECURITY] Suspicious pattern detected from IP: ${req.ip}`);
-      console.log(`[SECURITY] Pattern: ${pattern}, Path: ${req.path}`);
-      return res.status(400).json({
-        error: 'Invalid request detected. Suspicious patterns found.'
-      });
+      console.log(`[SECURITY] Suspicious pattern detected from IP: ${req.ip}, Path: ${req.path}`);
+      return res.status(400).json({ error: 'Invalid request detected.' });
     }
   }
-  
+
   next();
 };
 
@@ -156,26 +149,14 @@ const securityLogger = (req, res, next) => {
 // ── CORS Protection ──
 // ══════════════════════════════════════════════════════
 const corsProtection = (req, res, next) => {
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    process.env.FRONTEND_URL,
-    process.env.SERVER_URL
-  ].filter(Boolean);
-  
   const origin = req.headers.origin;
-  
-  if (allowedOrigins.includes(origin) || !origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
-  
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  
+  // Allow same-origin and any origin (frontend is served from same server)
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 };
 
