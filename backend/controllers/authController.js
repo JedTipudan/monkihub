@@ -55,11 +55,11 @@ const AuthController = {
     try {
       const users = await UserModel.findAll();
       res.json(users.map(u => ({
-        id: u.$.id,
-        username: u.username[0],
-        role: u.role[0],
-        displayName: u.displayName?.[0] || '',
-        avatar: u.avatar?.[0] || ''
+        id: u.id,
+        username: u.username,
+        role: u.role,
+        displayName: u.displayName || '',
+        avatar: u.avatar || ''
       })));
     } catch (err) { res.status(500).json({ error: err.message }); }
   },
