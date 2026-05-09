@@ -1578,7 +1578,43 @@ async function submitPaymentRequest() {
     loadUserPayroll();
   } catch (err) { showToast(err.message, 'error'); }
 }
-function escHtml(str) {
+function openFabTaskModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'fab-modal-overlay';
+  overlay.id = 'fab-task-modal';
+  overlay.innerHTML =
+    '<div class="fab-modal-sheet">' +
+      '<div class="fab-modal-handle"></div>' +
+      '<div class="fab-modal-title">&#10133; Assign Task</div>' +
+      '<div class="form-group"><label>Title</label><input type="text" id="fab-task-title" placeholder="Task title..."/></div>' +
+      '<div class="form-group"><label>Description</label><input type="text" id="fab-task-desc" placeholder="Brief description..."/></div>' +
+      '<div class="form-group"><label>Assignee</label><input type="text" id="fab-task-assignee" placeholder="username"/></div>' +
+      '<div class="form-group"><label>Priority</label>' +
+        '<select id="fab-task-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>' +
+      '</div>' +
+      '<div class="form-group"><label>Due Date (optional)</label><input type="date" id="fab-task-due" class="task-due-input"/></div>' +
+      '<button class="btn-primary" onclick="submitFabTask()">Create Task</button>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('fab-task-title').focus();
+}
+
+async function submitFabTask() {
+  const title    = document.getElementById('fab-task-title').value.trim();
+  const desc     = document.getElementById('fab-task-desc').value.trim();
+  const assignee = document.getElementById('fab-task-assignee').value.trim();
+  const priority = document.getElementById('fab-task-priority').value;
+  const dueDate  = document.getElementById('fab-task-due').value;
+  if (!title || !assignee) return showToast('Title and assignee are required', 'error');
+  try {
+    await apiCall('POST', '/tasks', { title, description: desc, assignee, priority, status: 'todo', taskImage: '', dueDate: dueDate || '' });
+    document.getElementById('fab-task-modal')?.remove();
+    showToast('Task created!', 'success');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 

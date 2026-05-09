@@ -1484,6 +1484,60 @@ body:not(.dark) .script-log { background: #1e2030; }
   .calendar-nav-title { font-size: 0.9rem; }
 }
 
+/* ── Floating Action Button (mobile assign task) ── */
+.fab-create-task {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 990;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(109,86,240,0.5);
+  transition: transform .2s, opacity .2s;
+  align-items: center;
+  justify-content: center;
+}
+.fab-create-task:hover { transform: scale(1.08); }
+.fab-create-task:active { transform: scale(0.95); }
+@media (max-width: 640px) {
+  .fab-create-task { display: flex; }
+  .task-form-card { display: none; }
+}
+
+/* ── FAB Task Modal (slide up) ── */
+.fab-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9995;
+  display: flex; align-items: flex-end;
+  animation: fadeIn .15s ease;
+}
+.fab-modal-sheet {
+  width: 100%;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 20px 32px;
+  animation: slideUp .25s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.fab-modal-handle {
+  width: 40px; height: 4px; border-radius: 4px;
+  background: var(--border); margin: 0 auto 16px;
+}
+.fab-modal-title {
+  font-size: 1rem; font-weight: 700; margin-bottom: 16px; text-align: center;
+}
+
 /* ── Password Strength Indicator ── */
 .password-input-wrapper {
   position: relative;
