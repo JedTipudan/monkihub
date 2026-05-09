@@ -1723,3 +1723,503 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
   }
 });
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Calendar / Due Date Feature ──────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Returns a CSS class name based on how close/past the due date is.
+ * @param {string} dueDate  ISO date string (YYYY-MM-DD or full ISO)
+ * @param {string} status   task status
+ */
+function getDueClass(dueDate, status) {
+  if (!dueDate) return 'no-due';
+  if (status === 'done') return 'done';
+  const due  = new Date(dueDate);
+  const now  = new Date();
+  // Normalise to midnight for day-level comparison
+  due.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  const diffDays = Math.ceil((due - now) / 86400000);
+  if (diffDays < 0)  return 'overdue';
+  if (diffDays <= 3) return 'due-soon';
+  return 'on-track';
+}
+
+/**
+ * Formats a YYYY-MM-DD string to a human-readable short date.
+ */
+function formatDueDate(dueDate) {
+  if (!dueDate) return '';
+  const d = new Date(dueDate + 'T00:00:00');
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/**
+ * Returns a label like "Due May 12" or "Overdue · May 10".
+ */
+function dueDateLabel(dueDate, status) {
+  if (!dueDate) return '';
+  const cls = getDueClass(dueDate, status);
+  const formatted = formatDueDate(dueDate);
+  if (cls === 'overdue')  return '⚠ Overdue · ' + formatted;
+  if (cls === 'due-soon') return '⏰ Due soon · ' + formatted;
+  if (cls === 'done')     return '✓ ' + formatted;
+  return '📅 Due ' + formatted;
+}
+
+// ── Due date badge rendered on task cards ────────────────────────────────────
+
+function renderDueBadge(task) {
+  if (!task.dueDate) return '';
+  const cls   = getDueClass(task.dueDate, task.status);
+  const label = dueDateLabel(task.dueDate, task.status);
+  const editBtn = (currentUser && currentUser.role === 'admin' && task.status !== 'done')
+    ? '<button class="btn-edit-due" onclick="openEditDueModal(\'' + task.id + '\',\'' + escHtml(task.dueDate) + '\',event)" title="Edit due date">✏</button>'
+    : '';
+  return '<div style="display:flex;align-items:center;gap:2px">' +
+    '<span class="task-due-badge ' + cls + '">' + escHtml(label) + '</span>' +
+    editBtn +
+  '</div>';
+}
+
+// ── Patch renderTasks to include due date badges ──────────────────────────────
+// We fully override renderTasks below to include due date badges on task cards.
+
+// Override renderTasks to include due date badges
+// (replaces the original defined earlier in app.js)
+window.renderTasks = function renderTasks() {
+  var isAdmin = currentUser.role === 'admin';
+  var cols = { todo: [], 'in-progress': [], 'pending-review': [], done: [] };
+  allTasks.forEach(function(t) { if (cols[t.status]) cols[t.status].push(t); });
+
+  ['todo','in-progress','pending-review'].forEach(function(status) {
+    var tasks = cols[status];
+    var col = document.getElementById('col-' + status);
+    var countEl = document.getElementById('count-' + status);
+    if (!col) return;
+    if (countEl) countEl.textContent = tasks.length;
+
+    col.innerHTML = tasks.map(function(t) {
+      var isAssignee = t.assignee === currentUser.username;
+      var canSubmit = !isAdmin && isAssignee && (status === 'todo' || status === 'in-progress');
+
+      var dueBadgeHtml = renderDueBadge(t);
+
+      if (status === 'pending-review') {
+        var proofHtml = '';
+        if (t.proof) {
+          var isImage = t.proof.startsWith('data:image');
+          proofHtml = isImage
+            ? '<img src="' + t.proof + '" class="task-proof-img" onclick="viewProof(\'' + t.id + '\')" title="Click to view"/>'
+            : '<a class="task-proof-file" href="' + t.proof + '" download="' + escHtml(t.proofName || 'proof') + '">&#128196; ' + escHtml(t.proofName || 'Download proof') + '</a>';
+        }
+        var submitted = t.submittedAt ? '<div class="task-submitted-at">Submitted: ' + new Date(t.submittedAt).toLocaleString() + '</div>' : '';
+        var waitingBadge = !isAdmin && isAssignee ? '<div class="task-waiting-badge">&#9203; Waiting for admin approval</div>' : '';
+        var adminActions = isAdmin
+          ? '<div class="task-actions review-actions"><button class="btn-approve" onclick="approveTask(\'' + t.id + '\')">&#10003; Approve</button><button class="btn-reject" onclick="openRejectModal(\'' + t.id + '\')">&#10005; Reject</button></div>'
+          : '';
+        return '<div class="task-card task-review">' +
+          '<div class="task-card-title">' + escHtml(t.title) + '</div>' +
+          '<div class="task-card-desc">' + escHtml(t.description || '') + '</div>' +
+          '<div class="task-card-meta"><span class="task-assignee">@' + t.assignee + '</span><span class="badge badge-' + t.priority + '">' + t.priority + '</span></div>' +
+          dueBadgeHtml +
+          submitted + proofHtml + waitingBadge + adminActions +
+        '</div>';
+      }
+
+      var rejectedBanner = t.rejectedReason ? '<div class="task-rejected-banner">&#10060; Rejected: ' + escHtml(t.rejectedReason) + '</div>' : '';
+      var actions = '';
+      if (isAdmin) {
+        actions = '<div class="task-actions">' +
+          (status !== 'in-progress' ? '<button onclick="moveTask(\'' + t.id + '\',\'in-progress\')">&#9654; In Progress</button>' : '') +
+          '<button class="del-btn" onclick="deleteTask(\'' + t.id + '\')">&#10005; Delete</button>' +
+        '</div>';
+      } else if (canSubmit) {
+        actions = '<div class="task-actions"><button class="btn-submit-review" onclick="openSubmitModal(\'' + t.id + '\',\'' + escHtml(t.title) + '\')">&#128196; Submit for Review</button></div>';
+      }
+
+      var taskImgHtml = t.taskImage
+        ? '<img src="' + t.taskImage + '" class="task-ref-img" onclick="viewTaskImage(\'' + t.id + '\')" title="View reference image"/>'
+        : '';
+
+      return '<div class="task-card">' +
+        '<div class="task-card-title">' + escHtml(t.title) + '</div>' +
+        '<div class="task-card-desc">' + escHtml(t.description || '') + '</div>' +
+        rejectedBanner +
+        taskImgHtml +
+        '<div class="task-card-meta"><span class="task-assignee">@' + t.assignee + '</span><span class="badge badge-' + t.priority + '">' + t.priority + '</span></div>' +
+        dueBadgeHtml +
+        actions +
+      '</div>';
+    }).join('') || '<div class="empty-state"><p>No tasks</p></div>';
+  });
+};
+
+// ── Patch createTask to send dueDate ─────────────────────────────────────────
+var _origCreateTask = window.createTask;
+window.createTask = async function createTask() {
+  var title       = document.getElementById('task-title').value.trim();
+  var description = document.getElementById('task-desc').value.trim();
+  var assignee    = document.getElementById('task-assignee').value.trim();
+  var priority    = document.getElementById('task-priority').value;
+  var dueDate     = document.getElementById('task-due-date') ? document.getElementById('task-due-date').value : '';
+  if (!title || !assignee) return showToast('Title and assignee are required', 'error');
+  try {
+    await apiCall('POST', '/tasks', {
+      title, description, assignee, priority,
+      status: 'todo',
+      taskImage: pendingTaskImage || '',
+      dueDate: dueDate || ''
+    });
+    document.getElementById('task-title').value = '';
+    document.getElementById('task-desc').value = '';
+    document.getElementById('task-assignee').value = '';
+    if (document.getElementById('task-due-date')) document.getElementById('task-due-date').value = '';
+    clearTaskImage();
+    showToast('Task created!', 'success');
+  } catch (err) { showToast(err.message, 'error'); }
+};
+
+// ── Edit Due Date Modal (admin) ───────────────────────────────────────────────
+function openEditDueModal(taskId, currentDue, event) {
+  if (event) event.stopPropagation();
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'edit-due-modal';
+  overlay.innerHTML =
+    '<div class="modal-box" style="max-width:320px;text-align:left">' +
+      '<div class="modal-icon">&#128197;</div>' +
+      '<h3 style="margin-bottom:14px;text-align:center">Set Due Date</h3>' +
+      '<div class="form-group">' +
+        '<label>Due Date</label>' +
+        '<input type="date" id="edit-due-input" class="task-due-input" value="' + escHtml(currentDue || '') + '"/>' +
+      '</div>' +
+      '<div class="modal-actions" style="margin-top:16px">' +
+        '<button class="modal-cancel" onclick="document.getElementById(\'edit-due-modal\').remove()">Cancel</button>' +
+        '<button class="modal-confirm" style="background:var(--accent)" onclick="saveEditDue(\'' + taskId + '\')">Save</button>' +
+        (currentDue ? '<button class="modal-cancel" style="border-color:var(--danger);color:var(--danger)" onclick="clearDueDate(\'' + taskId + '\')">Remove</button>' : '') +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  var inp = document.getElementById('edit-due-input');
+  if (inp) inp.focus();
+}
+
+async function saveEditDue(taskId) {
+  var inp = document.getElementById('edit-due-input');
+  var dueDate = inp ? inp.value : '';
+  try {
+    var updated = await apiCall('PUT', '/tasks/' + taskId, { dueDate: dueDate });
+    var idx = allTasks.findIndex(function(t) { return t.id === taskId; });
+    if (idx !== -1) allTasks[idx] = updated;
+    document.getElementById('edit-due-modal').remove();
+    showToast('Due date updated!', 'success');
+    renderTasks();
+    if (document.getElementById('panel-calendar').classList.contains('active')) renderCalendar();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function clearDueDate(taskId) {
+  try {
+    var updated = await apiCall('PUT', '/tasks/' + taskId, { dueDate: '' });
+    var idx = allTasks.findIndex(function(t) { return t.id === taskId; });
+    if (idx !== -1) allTasks[idx] = updated;
+    document.getElementById('edit-due-modal').remove();
+    showToast('Due date removed.', 'success');
+    renderTasks();
+    if (document.getElementById('panel-calendar').classList.contains('active')) renderCalendar();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ── Calendar rendering ────────────────────────────────────────────────────────
+
+async function loadCalendar() {
+  try {
+    allTasks = await apiCall('GET', '/tasks');
+    renderCalendar();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+function calPrevMonth() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function calNextMonth() {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+function calGoToday() {
+  var now = new Date();
+  calYear  = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCalendar();
+}
+
+function renderCalendar() {
+  var grid = document.getElementById('calendar-grid');
+  var title = document.getElementById('cal-month-title');
+  if (!grid) return;
+
+  var monthNames = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+  title.textContent = monthNames[calMonth] + ' ' + calYear;
+
+  // Build a map: "YYYY-MM-DD" → [tasks]
+  var taskMap = {};
+  allTasks.forEach(function(t) {
+    if (!t.dueDate) return;
+    // Normalise to YYYY-MM-DD
+    var key = t.dueDate.slice(0, 10);
+    if (!taskMap[key]) taskMap[key] = [];
+    taskMap[key].push(t);
+  });
+
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  // First day of the month
+  var firstDay = new Date(calYear, calMonth, 1);
+  var startDow = firstDay.getDay(); // 0=Sun
+
+  // Last day of the month
+  var lastDay = new Date(calYear, calMonth + 1, 0);
+  var totalDays = lastDay.getDate();
+
+  // Day headers
+  var dayHeaders = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var html = dayHeaders.map(function(d) {
+    return '<div class="calendar-day-header">' + d + '</div>';
+  }).join('');
+
+  // Blank cells before first day
+  for (var i = 0; i < startDow; i++) {
+    // Previous month days
+    var prevLast = new Date(calYear, calMonth, 0).getDate();
+    var prevDay  = prevLast - startDow + i + 1;
+    html += '<div class="calendar-cell other-month"><div class="cal-day-num">' + prevDay + '</div></div>';
+  }
+
+  // Actual days
+  for (var d = 1; d <= totalDays; d++) {
+    var cellDate = new Date(calYear, calMonth, d);
+    cellDate.setHours(0,0,0,0);
+    var isToday = cellDate.getTime() === today.getTime();
+
+    // Build YYYY-MM-DD key
+    var mm = String(calMonth + 1).padStart(2, '0');
+    var dd = String(d).padStart(2, '0');
+    var key = calYear + '-' + mm + '-' + dd;
+
+    var tasks = taskMap[key] || [];
+    var MAX_VISIBLE = 3;
+    var visible = tasks.slice(0, MAX_VISIBLE);
+    var overflow = tasks.length - MAX_VISIBLE;
+
+    var chipsHtml = visible.map(function(t) {
+      var cls = getDueClass(t.dueDate, t.status);
+      return '<div class="cal-task-chip ' + cls + '" onclick="showCalTaskPopup(\'' + t.id + '\',event)" title="' + escHtml(t.title) + '">' +
+        escHtml(t.title.length > 18 ? t.title.slice(0,17) + '…' : t.title) +
+      '</div>';
+    }).join('');
+
+    if (overflow > 0) {
+      chipsHtml += '<div class="cal-more" onclick="showCalDayModal(\'' + key + '\',event)">+' + overflow + ' more</div>';
+    }
+
+    html += '<div class="calendar-cell' + (isToday ? ' today' : '') + '">' +
+      '<div class="cal-day-num">' + d + '</div>' +
+      chipsHtml +
+    '</div>';
+  }
+
+  // Fill remaining cells to complete the last row
+  var totalCells = startDow + totalDays;
+  var remainder  = totalCells % 7;
+  if (remainder !== 0) {
+    var nextDayCount = 7 - remainder;
+    for (var n = 1; n <= nextDayCount; n++) {
+      html += '<div class="calendar-cell other-month"><div class="cal-day-num">' + n + '</div></div>';
+    }
+  }
+
+  grid.innerHTML = html;
+}
+
+// ── Calendar task popup ───────────────────────────────────────────────────────
+
+function showCalTaskPopup(taskId, event) {
+  event.stopPropagation();
+  // Remove any existing popup
+  var existing = document.getElementById('cal-popup');
+  if (existing) existing.remove();
+
+  var task = allTasks.find(function(t) { return t.id === taskId; });
+  if (!task) return;
+
+  var cls   = getDueClass(task.dueDate, task.status);
+  var popup = document.createElement('div');
+  popup.className = 'cal-popup';
+  popup.id = 'cal-popup';
+
+  var editBtn = (currentUser && currentUser.role === 'admin' && task.status !== 'done')
+    ? '<button class="btn-sm" style="width:100%;margin-top:10px;font-size:0.75rem" onclick="openEditDueModal(\'' + task.id + '\',\'' + escHtml(task.dueDate || '') + '\',event)">&#128197; Edit Due Date</button>'
+    : '';
+
+  popup.innerHTML =
+    '<button class="cal-popup-close" onclick="document.getElementById(\'cal-popup\').remove()">&#10005;</button>' +
+    '<div class="cal-popup-title">' + escHtml(task.title) + '</div>' +
+    '<div class="cal-popup-meta">' +
+      '<span>&#128100; @' + escHtml(task.assignee) + '</span>' +
+      '<span><span class="badge badge-' + task.priority + '">' + task.priority + '</span></span>' +
+      '<span><span class="task-due-badge ' + cls + '">' + escHtml(dueDateLabel(task.dueDate, task.status)) + '</span></span>' +
+      '<span>Status: <strong>' + escHtml(task.status) + '</strong></span>' +
+      (task.description ? '<span>' + escHtml(task.description) + '</span>' : '') +
+    '</div>' +
+    editBtn;
+
+  document.body.appendChild(popup);
+
+  // Position near click
+  var x = event.clientX + 10;
+  var y = event.clientY + 10;
+  // Keep within viewport
+  if (x + 290 > window.innerWidth)  x = event.clientX - 290;
+  if (y + 200 > window.innerHeight) y = event.clientY - 200;
+  popup.style.left = x + 'px';
+  popup.style.top  = y + 'px';
+
+  // Close on outside click
+  setTimeout(function() {
+    document.addEventListener('click', function closePopup(e) {
+      if (!popup.contains(e.target)) {
+        popup.remove();
+        document.removeEventListener('click', closePopup);
+      }
+    });
+  }, 0);
+}
+
+function showCalDayModal(dateKey, event) {
+  event.stopPropagation();
+  var tasks = allTasks.filter(function(t) { return t.dueDate && t.dueDate.slice(0,10) === dateKey; });
+  if (!tasks.length) return;
+
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'cal-day-modal';
+
+  var formatted = formatDueDate(dateKey);
+  var items = tasks.map(function(t) {
+    var cls = getDueClass(t.dueDate, t.status);
+    var clsColorMap = { overdue: 'var(--danger)', 'due-soon': 'var(--warning)', 'on-track': 'var(--success)', done: 'var(--text-muted)', 'no-due': 'var(--border)' };
+    var dotColor = clsColorMap[cls] || 'var(--border)';
+    return '<div class="upcoming-due-item" onclick="showCalTaskPopup(\'' + t.id + '\',event)">' +
+      '<div class="upcoming-due-dot" style="background:' + dotColor + '"></div>' +
+      '<span class="upcoming-due-title">' + escHtml(t.title) + '</span>' +
+      '<span class="upcoming-due-date">@' + escHtml(t.assignee) + '</span>' +
+    '</div>';
+  }).join('');
+
+  overlay.innerHTML =
+    '<div class="modal-box" style="max-width:360px;text-align:left">' +
+      '<div class="modal-icon">&#128197;</div>' +
+      '<h3 style="margin-bottom:14px;text-align:center">' + escHtml(formatted) + '</h3>' +
+      '<div class="upcoming-due-list">' + items + '</div>' +
+      '<div class="modal-actions" style="margin-top:16px">' +
+        '<button class="modal-cancel" onclick="document.getElementById(\'cal-day-modal\').remove()">Close</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+}
+
+// ── Hook calendar into navigation ────────────────────────────────────────────
+// Patch navigateTo to handle the calendar panel
+var _origNavigateTo = window.navigateTo;
+window.navigateTo = function navigateTo(panel) {
+  _origNavigateTo(panel);
+  if (panel === 'calendar') loadCalendar();
+};
+
+// ── Dashboard: show upcoming due dates widget ─────────────────────────────────
+// Patch loadDashboard to add upcoming due dates after it loads
+var _origLoadDashboard = window.loadDashboard;
+window.loadDashboard = async function loadDashboard() {
+  await _origLoadDashboard();
+  // Inject upcoming due dates into the dashboard if the container exists
+  renderUpcomingDueDates();
+};
+
+function renderUpcomingDueDates() {
+  // Find the recent-tasks dash-card and add an upcoming dues section after it
+  var recentTasksCard = document.querySelector('.dash-card:last-child');
+  if (!recentTasksCard) return;
+
+  // Remove existing upcoming widget if any
+  var existing = document.getElementById('upcoming-due-widget');
+  if (existing) existing.remove();
+
+  // Get tasks with due dates, not done, sorted by due date
+  var upcoming = allTasks
+    .filter(function(t) { return t.dueDate && t.status !== 'done'; })
+    .sort(function(a, b) { return new Date(a.dueDate) - new Date(b.dueDate); })
+    .slice(0, 5);
+
+  if (!upcoming.length) return;
+
+  var widget = document.createElement('div');
+  widget.id = 'upcoming-due-widget';
+  widget.className = 'dash-card';
+  widget.style.marginTop = '16px';
+
+  var dotColors = { overdue: 'var(--danger)', 'due-soon': 'var(--warning)', 'on-track': 'var(--success)', done: 'var(--text-muted)', 'no-due': 'var(--border)' };
+
+  var items = upcoming.map(function(t) {
+    var cls   = getDueClass(t.dueDate, t.status);
+    var color = dotColors[cls] || 'var(--border)';
+    return '<div class="upcoming-due-item" onclick="navigateTo(\'calendar\')">' +
+      '<div class="upcoming-due-dot" style="background:' + color + '"></div>' +
+      '<span class="upcoming-due-title">' + escHtml(t.title) + '</span>' +
+      '<span class="upcoming-due-date">' + escHtml(formatDueDate(t.dueDate)) + '</span>' +
+    '</div>';
+  }).join('');
+
+  widget.innerHTML = '<h4>&#128197; Upcoming Due Dates</h4><div class="upcoming-due-list">' + items + '</div>';
+
+  // Insert after the dashboard grid
+  var dashGrid = document.querySelector('.dashboard-grid');
+  if (dashGrid) dashGrid.parentNode.insertBefore(widget, dashGrid.nextSibling);
+}
+
+// ── Real-time: update calendar when tasks change ──────────────────────────────
+// Socket events already update allTasks and call renderTasks().
+// We additionally re-render the calendar if it's open.
+var _origInitSocket = window.initSocket;
+window.initSocket = function initSocket() {
+  _origInitSocket();
+  // Patch task socket events to also refresh calendar
+  if (socket) {
+    socket.on('task:new', function() {
+      if (document.getElementById('panel-calendar').classList.contains('active')) renderCalendar();
+    });
+    socket.on('task:updated', function() {
+      if (document.getElementById('panel-calendar').classList.contains('active')) renderCalendar();
+    });
+    socket.on('task:deleted', function() {
+      if (document.getElementById('panel-calendar').classList.contains('active')) renderCalendar();
+    });
+  }
+};

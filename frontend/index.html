@@ -108,6 +108,9 @@
       <button class="nav-item" data-panel="payroll" onclick="navigateTo('payroll')">
           <span class="icon">&#128181;</span> <span class="nav-label-text">Payroll</span>
         </button>
+        <button class="nav-item" data-panel="calendar" onclick="navigateTo('calendar')">
+          <span class="icon">&#128197;</span> <span class="nav-label-text">Calendar</span>
+        </button>
       </div>
       <div class="nav-section">
         <div class="nav-label">Data</div>
@@ -237,6 +240,10 @@
                 <option value="medium" selected>Medium</option>
                 <option value="high">High</option>
               </select>
+            </div>
+            <div class="form-group">
+              <label>Due Date (optional)</label>
+              <input type="date" id="task-due-date" class="task-due-input"/>
             </div>
             <div class="form-group full">
               <label>Task Reference Image (optional)</label>
@@ -387,6 +394,36 @@
       </div>
       <div class="scripts-body" id="scripts-body">
         <div class="loading">Loading scripts...</div>
+      </div>
+    </div>
+
+    <!-- ── Calendar Panel ── -->
+    <div class="panel" id="panel-calendar">
+      <div class="panel-header">
+        <div>
+          <h3>&#128197; Calendar</h3>
+          <p>Task due dates at a glance</p>
+        </div>
+        <button class="btn-sm" onclick="loadCalendar()">&#8635; Refresh</button>
+      </div>
+      <div class="calendar-body">
+        <div class="calendar-legend">
+          <div class="cal-legend-item"><div class="cal-legend-dot overdue"></div> Overdue</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot due-soon"></div> Due within 3 days</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot on-track"></div> On track</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot done"></div> Completed</div>
+        </div>
+        <div class="calendar-nav">
+          <div class="calendar-nav-btns">
+            <button class="btn-cal-nav" onclick="calPrevMonth()">&#8592; Prev</button>
+            <button class="btn-cal-today" onclick="calGoToday()">Today</button>
+            <button class="btn-cal-nav" onclick="calNextMonth()">Next &#8594;</button>
+          </div>
+          <div class="calendar-nav-title" id="cal-month-title">—</div>
+        </div>
+        <div class="calendar-grid" id="calendar-grid">
+          <div class="loading" style="grid-column:1/-1;padding:40px">Loading...</div>
+        </div>
       </div>
     </div>
 

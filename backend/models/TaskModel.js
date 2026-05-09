@@ -20,7 +20,8 @@ function normalize(tasks) {
     proofName: t.proofName?.[0] || '',
     submittedAt: t.submittedAt?.[0] || '',
     rejectedReason: t.rejectedReason?.[0] || '',
-    taskImage: t.taskImage?.[0] || ''
+    taskImage: t.taskImage?.[0] || '',
+    dueDate: t.dueDate?.[0] || ''
   }));
 }
 
@@ -40,7 +41,7 @@ const TaskModel = {
     return all.filter(t => t.assignee === username);
   },
 
-  async create({ title, description, assignee, status = 'todo', priority = 'medium', createdBy, taskImage = '' }) {
+  async create({ title, description, assignee, status = 'todo', priority = 'medium', createdBy, taskImage = '', dueDate = '' }) {
     if (!title || !assignee || !createdBy) throw new Error('title, assignee, createdBy are required');
     if (!VALID_STATUSES.includes(status)) throw new Error(`status must be one of: ${VALID_STATUSES.join(', ')}`);
     if (!VALID_PRIORITIES.includes(priority)) throw new Error(`priority must be one of: ${VALID_PRIORITIES.join(', ')}`);
@@ -54,7 +55,8 @@ const TaskModel = {
       title: [title], description: [description || ''], assignee: [assignee],
       status: [status], priority: [priority],
       createdAt: [new Date().toISOString()], createdBy: [createdBy],
-      taskImage: [taskImage || '']
+      taskImage: [taskImage || ''],
+      dueDate: [dueDate || '']
     };
     data.tasks.task.push(newTask);
     await writeXml(FILE, data);
@@ -68,7 +70,7 @@ const TaskModel = {
     const idx = tasks.findIndex(t => t.$.id === id);
     if (idx === -1) throw new Error('Task not found');
 
-    const allowed = ['title', 'description', 'assignee', 'status', 'priority', 'proof', 'proofName', 'submittedAt', 'rejectedReason', 'taskImage'];
+    const allowed = ['title', 'description', 'assignee', 'status', 'priority', 'proof', 'proofName', 'submittedAt', 'rejectedReason', 'taskImage', 'dueDate'];
     allowed.forEach(k => { if (updates[k] !== undefined) tasks[idx][k] = [updates[k]]; });
     data.tasks.task = tasks;
     await writeXml(FILE, data);
