@@ -365,18 +365,20 @@ async function loadDashboard() {
     if (el) el.innerHTML = '<span class="skel skel-stat"></span>';
   });
   try {
-    const [tasks, messages, users] = await Promise.all([
+    const isAdmin = currentUser.role === 'admin';
+    const requests = [
       apiCall('GET', '/tasks'),
       apiCall('GET', '/messages'),
-      apiCall('GET', '/auth/list')
-    ]);
+      isAdmin ? apiCall('GET', '/auth/list') : Promise.resolve([])
+    ];
+    const [tasks, messages, users] = await Promise.all(requests);
     allTasks = tasks; allMessages = messages;
 
     document.getElementById('stat-tasks').textContent = tasks.length;
     document.getElementById('stat-messages').textContent = messages.length;
     document.getElementById('stat-todo').textContent = tasks.filter(t => t.status === 'todo').length;
     document.getElementById('stat-done').textContent = tasks.filter(t => t.status === 'done').length;
-    document.getElementById('stat-users').textContent = users.length;
+    if (isAdmin) document.getElementById('stat-users').textContent = users.length;
     document.getElementById('stat-inprogress').textContent = tasks.filter(t => t.status === 'in-progress').length;
 
     // Activity feed - merge tasks + messages, sort by time, show latest 8
@@ -819,7 +821,7 @@ function updateChatNavBadge() {
 
 async function loadChatUsers() {
   try {
-    const users = await apiCall('GET', '/auth/list');
+    const users = await apiCall('GET', '/auth/list').catch(() => []);
     const list = document.getElementById('room-list');
     const others = users.filter(u => u.username !== currentUser.username);
     if (!others.length) {
@@ -982,9 +984,9 @@ async function checkForUnreadMessages() {
 // Check for unread messages on login (without going to chat section)
 async function checkUnreadOnLogin() {
   try {
-    const users = await apiCall('GET', '/auth/list');
+    const users = await apiCall('GET', '/auth/list').catch(() => []);
     const others = users.filter(u => u.username !== currentUser.username);
-    await checkAllUnreadMessages(others);
+    if (others.length) await checkAllUnreadMessages(others);
   } catch (err) {
     console.error('[CHECK UNREAD ON LOGIN] Error:', err);
   }

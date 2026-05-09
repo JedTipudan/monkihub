@@ -7,7 +7,7 @@ router.post('/login', authLimiter, AuthController.login);
 router.post('/register', createAccountLimiter, AuthController.register);
 router.post('/create-admin', authenticate, requireSuperAdmin, strictLimiter, AuthController.createAdmin);
 router.get('/users', authenticate, requireAdmin, AuthController.getUsers);
-router.get('/list', authenticate, AuthController.getUsers);
+router.get('/list', authenticate, AuthController.listUsers);
 router.delete('/users/:username', authenticate, requireAdmin, strictLimiter, AuthController.deleteUser);
 router.get('/profile', authenticate, AuthController.getProfile);
 router.put('/profile', authenticate, AuthController.updateProfile);

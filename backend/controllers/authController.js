@@ -50,6 +50,20 @@ const AuthController = {
     }
   },
 
+  // Public user list (all authenticated users) - returns safe fields only
+  async listUsers(req, res) {
+    try {
+      const users = await UserModel.findAll();
+      res.json(users.map(u => ({
+        id: u.$.id,
+        username: u.username[0],
+        role: u.role[0],
+        displayName: u.displayName?.[0] || '',
+        avatar: u.avatar?.[0] || ''
+      })));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+  },
+
   async getUsers(req, res) {
     try {
       const users = await UserModel.findAll();
