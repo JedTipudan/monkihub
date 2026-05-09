@@ -990,4 +990,76 @@
     <detail>Delivered: admin → jed: "hi"</detail>
     <timestamp>2026-05-09T02:41:54.478Z</timestamp>
   </log>
+  <log id="log-fb3f7fa6">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: jed → admin: "hi"</detail>
+    <timestamp>2026-05-09T02:49:04.013Z</timestamp>
+  </log>
+  <log id="log-5f671207">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "hi"</detail>
+    <timestamp>2026-05-09T02:49:07.026Z</timestamp>
+  </log>
+  <log id="log-7948ea11">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "asdasd"</detail>
+    <timestamp>2026-05-09T02:49:54.218Z</timestamp>
+  </log>
+  <log id="log-fe82e545">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "asdasd"</detail>
+    <timestamp>2026-05-09T02:49:54.512Z</timestamp>
+  </log>
+  <log id="log-0ba4dc38">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "asd"</detail>
+    <timestamp>2026-05-09T02:49:54.544Z</timestamp>
+  </log>
+  <log id="log-b6ccd83c">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "asd"</detail>
+    <timestamp>2026-05-09T02:49:54.579Z</timestamp>
+  </log>
+  <log id="log-bc1db960">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "asd"</detail>
+    <timestamp>2026-05-09T02:49:54.622Z</timestamp>
+  </log>
+  <log id="log-167adcc1">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "asd"</detail>
+    <timestamp>2026-05-09T02:49:54.647Z</timestamp>
+  </log>
+  <log id="log-9bb7d69e">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "asd"</detail>
+    <timestamp>2026-05-09T02:49:54.697Z</timestamp>
+  </log>
+  <log id="log-4c6e0967">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "asd"</detail>
+    <timestamp>2026-05-09T02:49:54.722Z</timestamp>
+  </log>
+  <log id="log-7af1665f">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "asd"</detail>
+    <timestamp>2026-05-09T02:49:54.744Z</timestamp>
+  </log>
+  <log id="log-ea714128">
+    <action>USER_LOGIN</action>
+    <actor>admin</actor>
+    <detail>admin logged in</detail>
+    <timestamp>2026-05-09T04:18:04.104Z</timestamp>
+  </log>
 </logs>
