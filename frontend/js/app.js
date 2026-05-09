@@ -37,11 +37,38 @@ async function login() {
 async function register() {
   const username = document.getElementById('reg-username').value.trim();
   const password = document.getElementById('reg-password').value;
+  const passwordConfirm = document.getElementById('reg-password-confirm').value;
   const email = document.getElementById('reg-email').value.trim();
+  
+  // Validate inputs
+  if (!username || !password || !email) {
+    showToast('Please fill in all fields', 'error');
+    return;
+  }
+  
+  // Validate password strength
+  if (!validatePasswordStrength(password)) {
+    showToast('Password must be at least fair strength (8+ characters, uppercase, lowercase, number)', 'error');
+    return;
+  }
+  
+  // Validate password match
+  if (password !== passwordConfirm) {
+    showToast('Passwords do not match', 'error');
+    return;
+  }
+  
   try {
     await apiCall('POST', '/auth/register', { username, password, email });
     showToast('Account created! Please login.', 'success');
     switchAuthTab('login');
+    // Clear form
+    document.getElementById('reg-username').value = '';
+    document.getElementById('reg-password').value = '';
+    document.getElementById('reg-password-confirm').value = '';
+    document.getElementById('reg-email').value = '';
+    document.getElementById('reg-strength').style.display = 'none';
+    document.getElementById('reg-match-msg').style.display = 'none';
   } catch (err) { showToast(err.message, 'error'); }
 }
 
@@ -1598,6 +1625,12 @@ async function openProfileModal() {
 function closeProfileModal() {
   document.getElementById('profile-modal').style.display = 'none';
   pendingAvatar = null;
+  // Clear password fields
+  document.getElementById('profile-new-password').value = '';
+  document.getElementById('profile-password-confirm').value = '';
+  document.getElementById('profile-strength').style.display = 'none';
+  document.getElementById('profile-confirm-group').style.display = 'none';
+  document.getElementById('profile-match-msg').style.display = 'none';
 }
 
 function renderAvatarPreview(avatar, username) {
@@ -1633,8 +1666,30 @@ function removeAvatar() {
 async function saveProfile() {
   const displayName = document.getElementById('profile-displayname').value.trim();
   const email = document.getElementById('profile-email').value.trim();
+  const newPassword = document.getElementById('profile-new-password').value;
+  const passwordConfirm = document.getElementById('profile-password-confirm').value;
+  
   const body = { displayName, email };
+  
+  // If user wants to change password
+  if (newPassword) {
+    // Validate password strength
+    if (!validatePasswordStrength(newPassword)) {
+      showToast('New password must be at least fair strength (8+ characters, uppercase, lowercase, number)', 'error');
+      return;
+    }
+    
+    // Validate password match
+    if (newPassword !== passwordConfirm) {
+      showToast('Passwords do not match', 'error');
+      return;
+    }
+    
+    body.password = newPassword;
+  }
+  
   if (pendingAvatar !== null) body.avatar = pendingAvatar;
+  
   try {
     const updated = await apiCall('PUT', '/auth/profile', body);
     currentUser.displayName = updated.displayName;
@@ -1642,7 +1697,7 @@ async function saveProfile() {
     localStorage.setItem('mh_user', JSON.stringify(currentUser));
     updateTopbarAvatar();
     closeProfileModal();
-    showToast('Profile updated!', 'success');
+    showToast(newPassword ? 'Profile and password updated!' : 'Profile updated!', 'success');
   } catch (err) { showToast(err.message, 'error'); }
 }
 
@@ -2223,3 +2278,124 @@ window.initSocket = function initSocket() {
     });
   }
 };
+
+
+// ══════════════════════════════════════════════════════
+// ── Password Strength & Validation ──
+// ══════════════════════════════════════════════════════
+
+function checkPasswordStrength(inputId, strengthId) {
+  const input = document.getElementById(inputId);
+  const strengthDiv = document.getElementById(strengthId);
+  const password = input.value;
+
+  // Show/hide strength indicator
+  if (password.length === 0) {
+    strengthDiv.style.display = 'none';
+    // Show confirm field for profile if password is empty
+    if (inputId === 'profile-new-password') {
+      document.getElementById('profile-confirm-group').style.display = 'none';
+    }
+    return;
+  }
+
+  strengthDiv.style.display = 'block';
+  
+  // Show confirm field for profile when password is entered
+  if (inputId === 'profile-new-password') {
+    document.getElementById('profile-confirm-group').style.display = 'block';
+  }
+
+  // Check requirements
+  const requirements = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+  };
+
+  // Update requirement items
+  const reqItems = strengthDiv.querySelectorAll('.req-item');
+  reqItems.forEach(item => {
+    const req = item.getAttribute('data-req');
+    if (requirements[req]) {
+      item.classList.add('met');
+      item.textContent = item.textContent.replace('✗', '✓');
+    } else {
+      item.classList.remove('met');
+      item.textContent = item.textContent.replace('✓', '✗');
+    }
+  });
+
+  // Calculate strength
+  const metCount = Object.values(requirements).filter(Boolean).length;
+  const strengthFill = strengthDiv.querySelector('.strength-fill');
+  const strengthText = strengthDiv.querySelector('.strength-text');
+
+  // Remove all strength classes
+  strengthFill.className = 'strength-fill';
+  strengthText.className = 'strength-text';
+
+  if (metCount <= 2) {
+    strengthFill.classList.add('weak');
+    strengthText.classList.add('weak');
+    strengthText.textContent = '🔴 Weak Password';
+  } else if (metCount === 3) {
+    strengthFill.classList.add('fair');
+    strengthText.classList.add('fair');
+    strengthText.textContent = '🟡 Fair Password';
+  } else if (metCount === 4) {
+    strengthFill.classList.add('good');
+    strengthText.classList.add('good');
+    strengthText.textContent = '🔵 Good Password';
+  } else {
+    strengthFill.classList.add('strong');
+    strengthText.classList.add('strong');
+    strengthText.textContent = '🟢 Strong Password';
+  }
+}
+
+function checkPasswordMatch(passwordId, confirmId) {
+  const password = document.getElementById(passwordId).value;
+  const confirm = document.getElementById(confirmId).value;
+  const matchMsg = document.getElementById(confirmId.replace('-confirm', '-match-msg'));
+
+  if (confirm.length === 0) {
+    matchMsg.style.display = 'none';
+    matchMsg.className = 'password-match-msg';
+    return;
+  }
+
+  if (password === confirm) {
+    matchMsg.className = 'password-match-msg match';
+    matchMsg.textContent = '✓ Passwords match';
+  } else {
+    matchMsg.className = 'password-match-msg no-match';
+    matchMsg.textContent = '✗ Passwords do not match';
+  }
+}
+
+function togglePasswordVisibility(inputId, button) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    button.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    button.textContent = '👁️';
+  }
+}
+
+function validatePasswordStrength(password) {
+  const requirements = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+  };
+  
+  const metCount = Object.values(requirements).filter(Boolean).length;
+  return metCount >= 3; // At least fair password
+}

@@ -94,9 +94,20 @@ const AuthController = {
 
   async updateProfile(req, res) {
     try {
-      const { displayName, avatar, email } = req.body;
-      const updated = await UserModel.updateProfile(req.user.username, { displayName, avatar, email });
-      await LogModel.create({ action: 'PROFILE_UPDATED', actor: req.user.username, detail: `${req.user.username} updated their profile` });
+      const { displayName, avatar, email, password } = req.body;
+      const updateData = { displayName, avatar, email };
+      
+      // If password is provided, hash it
+      if (password) {
+        const bcrypt = require('bcryptjs');
+        updateData.password = await bcrypt.hash(password, 10);
+      }
+      
+      const updated = await UserModel.updateProfile(req.user.username, updateData);
+      const detail = password 
+        ? `${req.user.username} updated their profile and password`
+        : `${req.user.username} updated their profile`;
+      await LogModel.create({ action: 'PROFILE_UPDATED', actor: req.user.username, detail });
       res.json(updated);
     } catch (err) { res.status(400).json({ error: err.message }); }
   }

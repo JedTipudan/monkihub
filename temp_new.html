@@ -46,29 +46,7 @@
       </div>
       <div class="form-group">
         <label>Password</label>
-        <div class="password-input-wrapper">
-          <input type="password" id="reg-password" placeholder="Choose a password" oninput="checkPasswordStrength('reg-password', 'reg-strength')" autocomplete="new-password"/>
-          <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password', this)">👁️</button>
-        </div>
-        <div class="password-strength" id="reg-strength" style="display:none">
-          <div class="strength-bar"><div class="strength-fill"></div></div>
-          <div class="strength-text"></div>
-          <div class="strength-requirements">
-            <div class="req-item" data-req="length">✗ At least 8 characters</div>
-            <div class="req-item" data-req="uppercase">✗ One uppercase letter</div>
-            <div class="req-item" data-req="lowercase">✗ One lowercase letter</div>
-            <div class="req-item" data-req="number">✗ One number</div>
-            <div class="req-item" data-req="special">✗ One special character (!@#$%^&*)</div>
-          </div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Confirm Password</label>
-        <div class="password-input-wrapper">
-          <input type="password" id="reg-password-confirm" placeholder="Re-enter your password" oninput="checkPasswordMatch('reg-password', 'reg-password-confirm')" autocomplete="new-password"/>
-          <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password-confirm', this)">👁️</button>
-        </div>
-        <div class="password-match-msg" id="reg-match-msg"></div>
+        <input type="password" id="reg-password" placeholder="Choose a password"/>
       </div>
       <button class="btn-primary" onclick="register()">Create Account</button>
     </div>
@@ -480,32 +458,6 @@
     <div class="form-group">
       <label>Username</label>
       <input type="text" id="profile-username" disabled style="opacity:0.5"/>
-    </div>
-    <div class="form-group">
-      <label>Change Password (optional)</label>
-      <div class="password-input-wrapper">
-        <input type="password" id="profile-new-password" placeholder="Leave blank to keep current password" oninput="checkPasswordStrength('profile-new-password', 'profile-strength')" autocomplete="new-password"/>
-        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('profile-new-password', this)">👁️</button>
-      </div>
-      <div class="password-strength" id="profile-strength" style="display:none">
-        <div class="strength-bar"><div class="strength-fill"></div></div>
-        <div class="strength-text"></div>
-        <div class="strength-requirements">
-          <div class="req-item" data-req="length">✗ At least 8 characters</div>
-          <div class="req-item" data-req="uppercase">✗ One uppercase letter</div>
-          <div class="req-item" data-req="lowercase">✗ One lowercase letter</div>
-          <div class="req-item" data-req="number">✗ One number</div>
-          <div class="req-item" data-req="special">✗ One special character (!@#$%^&*)</div>
-        </div>
-      </div>
-    </div>
-    <div class="form-group" id="profile-confirm-group" style="display:none">
-      <label>Confirm New Password</label>
-      <div class="password-input-wrapper">
-        <input type="password" id="profile-password-confirm" placeholder="Re-enter your new password" oninput="checkPasswordMatch('profile-new-password', 'profile-password-confirm')" autocomplete="new-password"/>
-        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('profile-password-confirm', this)">👁️</button>
-      </div>
-      <div class="password-match-msg" id="profile-match-msg"></div>
     </div>
     <div class="modal-actions" style="margin-top:20px">
       <button class="modal-cancel" onclick="closeProfileModal()">Cancel</button>

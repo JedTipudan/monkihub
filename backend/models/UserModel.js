@@ -50,7 +50,7 @@ const UserModel = {
     return match ? { id: user.$.id, username: user.username[0], role: user.role[0], isSuperAdmin: user.isSuperAdmin?.[0] === 'true' } : null;
   },
 
-  async updateProfile(username, { displayName, avatar, email }) {
+  async updateProfile(username, { displayName, avatar, email, password }) {
     const data = await readXml(FILE);
     const users = Array.isArray(data.users.user) ? data.users.user : [data.users.user];
     const idx = users.findIndex(u => u.username[0] === username);
@@ -58,6 +58,7 @@ const UserModel = {
     if (displayName !== undefined) users[idx].displayName = [displayName];
     if (avatar !== undefined) users[idx].avatar = [avatar];
     if (email !== undefined) users[idx].email = [email];
+    if (password !== undefined) users[idx].password = [password];
     data.users.user = users;
     await writeXml(FILE, data);
     return {

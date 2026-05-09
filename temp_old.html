@@ -46,29 +46,7 @@
       </div>
       <div class="form-group">
         <label>Password</label>
-        <div class="password-input-wrapper">
-          <input type="password" id="reg-password" placeholder="Choose a password" oninput="checkPasswordStrength('reg-password', 'reg-strength')" autocomplete="new-password"/>
-          <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password', this)">👁️</button>
-        </div>
-        <div class="password-strength" id="reg-strength" style="display:none">
-          <div class="strength-bar"><div class="strength-fill"></div></div>
-          <div class="strength-text"></div>
-          <div class="strength-requirements">
-            <div class="req-item" data-req="length">✗ At least 8 characters</div>
-            <div class="req-item" data-req="uppercase">✗ One uppercase letter</div>
-            <div class="req-item" data-req="lowercase">✗ One lowercase letter</div>
-            <div class="req-item" data-req="number">✗ One number</div>
-            <div class="req-item" data-req="special">✗ One special character (!@#$%^&*)</div>
-          </div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Confirm Password</label>
-        <div class="password-input-wrapper">
-          <input type="password" id="reg-password-confirm" placeholder="Re-enter your password" oninput="checkPasswordMatch('reg-password', 'reg-password-confirm')" autocomplete="new-password"/>
-          <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password-confirm', this)">👁️</button>
-        </div>
-        <div class="password-match-msg" id="reg-match-msg"></div>
+        <input type="password" id="reg-password" placeholder="Choose a password"/>
       </div>
       <button class="btn-primary" onclick="register()">Create Account</button>
     </div>
@@ -129,9 +107,6 @@
         </button>
       <button class="nav-item" data-panel="payroll" onclick="navigateTo('payroll')">
           <span class="icon">&#128181;</span> <span class="nav-label-text">Payroll</span>
-        </button>
-        <button class="nav-item" data-panel="calendar" onclick="navigateTo('calendar')">
-          <span class="icon">&#128197;</span> <span class="nav-label-text">Calendar</span>
         </button>
       </div>
       <div class="nav-section">
@@ -262,10 +237,6 @@
                 <option value="medium" selected>Medium</option>
                 <option value="high">High</option>
               </select>
-            </div>
-            <div class="form-group">
-              <label>Due Date (optional)</label>
-              <input type="date" id="task-due-date" class="task-due-input"/>
             </div>
             <div class="form-group full">
               <label>Task Reference Image (optional)</label>
@@ -419,36 +390,6 @@
       </div>
     </div>
 
-    <!-- ── Calendar Panel ── -->
-    <div class="panel" id="panel-calendar">
-      <div class="panel-header">
-        <div>
-          <h3>&#128197; Calendar</h3>
-          <p>Task due dates at a glance</p>
-        </div>
-        <button class="btn-sm" onclick="loadCalendar()">&#8635; Refresh</button>
-      </div>
-      <div class="calendar-body">
-        <div class="calendar-legend">
-          <div class="cal-legend-item"><div class="cal-legend-dot overdue"></div> Overdue</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot due-soon"></div> Due within 3 days</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot on-track"></div> On track</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot done"></div> Completed</div>
-        </div>
-        <div class="calendar-nav">
-          <div class="calendar-nav-btns">
-            <button class="btn-cal-nav" onclick="calPrevMonth()">&#8592; Prev</button>
-            <button class="btn-cal-today" onclick="calGoToday()">Today</button>
-            <button class="btn-cal-nav" onclick="calNextMonth()">Next &#8594;</button>
-          </div>
-          <div class="calendar-nav-title" id="cal-month-title">—</div>
-        </div>
-        <div class="calendar-grid" id="calendar-grid">
-          <div class="loading" style="grid-column:1/-1;padding:40px">Loading...</div>
-        </div>
-      </div>
-    </div>
-
   </div><!-- end main-content -->
 </div><!-- end app -->
 
@@ -480,32 +421,6 @@
     <div class="form-group">
       <label>Username</label>
       <input type="text" id="profile-username" disabled style="opacity:0.5"/>
-    </div>
-    <div class="form-group">
-      <label>Change Password (optional)</label>
-      <div class="password-input-wrapper">
-        <input type="password" id="profile-new-password" placeholder="Leave blank to keep current password" oninput="checkPasswordStrength('profile-new-password', 'profile-strength')" autocomplete="new-password"/>
-        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('profile-new-password', this)">👁️</button>
-      </div>
-      <div class="password-strength" id="profile-strength" style="display:none">
-        <div class="strength-bar"><div class="strength-fill"></div></div>
-        <div class="strength-text"></div>
-        <div class="strength-requirements">
-          <div class="req-item" data-req="length">✗ At least 8 characters</div>
-          <div class="req-item" data-req="uppercase">✗ One uppercase letter</div>
-          <div class="req-item" data-req="lowercase">✗ One lowercase letter</div>
-          <div class="req-item" data-req="number">✗ One number</div>
-          <div class="req-item" data-req="special">✗ One special character (!@#$%^&*)</div>
-        </div>
-      </div>
-    </div>
-    <div class="form-group" id="profile-confirm-group" style="display:none">
-      <label>Confirm New Password</label>
-      <div class="password-input-wrapper">
-        <input type="password" id="profile-password-confirm" placeholder="Re-enter your new password" oninput="checkPasswordMatch('profile-new-password', 'profile-password-confirm')" autocomplete="new-password"/>
-        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('profile-password-confirm', this)">👁️</button>
-      </div>
-      <div class="password-match-msg" id="profile-match-msg"></div>
     </div>
     <div class="modal-actions" style="margin-top:20px">
       <button class="modal-cancel" onclick="closeProfileModal()">Cancel</button>
