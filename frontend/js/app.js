@@ -129,8 +129,10 @@ function initApp() {
   navigateTo('dashboard');
   loadDashboard();
   
-  // Check for unread messages on login
-  checkUnreadOnLogin();
+  // Check for unread messages on login (non-blocking)
+  setTimeout(() => {
+    checkUnreadOnLogin().catch(err => console.error('[UNREAD CHECK] Error:', err));
+  }, 1000);
 }
 
 function initSocket() {
