@@ -79,6 +79,17 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - Quick task overview on calendar dates
 - Due date tracking and alerts
 
+### 🛡️ Security & DDoS Protection
+- **Multi-layer rate limiting** (500 req/15min global, 60 req/min API)
+- **Auto IP blacklisting** (50 failed attempts → 24hr ban)
+- **Request size limits** (10MB max)
+- **Suspicious pattern detection** (XSS, SQL injection, path traversal)
+- **Security headers** (Helmet.js - CSP, HSTS, XSS protection)
+- **Socket.IO connection limits** (10 per IP)
+- **Password strength validation** with real-time indicator
+- **Failed login tracking** with automatic lockout
+- See [SECURITY.md](SECURITY.md) for full details
+
 ---
 
 ## Project Structure
@@ -111,8 +122,10 @@ MonkiHub/
 │   ├── services/             # Business logic
 │   │   ├── xmlService.js      # XML read/write operations
 │   │   └── brokerService.js   # Kafka producer (Redpanda)
-│   ├── middleware/           # Auth middleware
-│   │   └── auth.js            # authenticate, requireAdmin, requireSuperAdmin
+│   ├── middleware/           # Auth & Security middleware
+│   │   ├── auth.js            # authenticate, requireAdmin, requireSuperAdmin
+│   │   ├── rateLimiter.js     # Rate limiting configurations
+│   │   └── security.js        # Security middleware (Helmet, HPP, etc.)
 │   ├── data/                 # XML data storage
 │   │   ├── users.xml
 │   │   ├── tasks.xml
@@ -426,6 +439,10 @@ node resetAdminPassword.js
 - **jsonwebtoken** - JWT authentication
 - **uuid** - Unique ID generation
 - **socket.io-client** - Consumer connects back to server
+- **express-rate-limit** - Rate limiting middleware
+- **express-slow-down** - Gradual speed limiting
+- **helmet** - Security headers
+- **hpp** - HTTP Parameter Pollution protection
 
 ### Frontend
 - **Vanilla JavaScript** - No frameworks
