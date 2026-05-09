@@ -876,7 +876,12 @@ async function sendMessage() {
   if (!content) return;
   input.value = '';
   try {
-    await apiCall('POST', '/messages', { content, receiver: chatTarget });
+    const result = await apiCall('POST', '/messages', { content, receiver: chatTarget });
+    // If fallback mode (status 201), append immediately
+    // If Kafka mode (status 202/queued), consumer will deliver via socket
+    if (result.status === 'delivered') {
+      appendMessage({ sender: currentUser.username, receiver: chatTarget, content, room: [currentUser.username, chatTarget].sort().join(':'), timestamp: new Date().toISOString() });
+    }
   } catch (err) { showToast(err.message, 'error'); }
 }
 

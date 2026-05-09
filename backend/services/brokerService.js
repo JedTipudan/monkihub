@@ -1,56 +1,60 @@
-let redisClient = null;
-let pubClient = null;
-let subClient = null;
-let redisAvailable = false;
+const { Kafka } = require('kafkajs');
 
-// In-memory queue fallback when Redis is not available
-const inMemoryQueue = [];
-const subscribers = {};
+const KAFKA_BROKER = process.env.KAFKA_BROKER || '';
+const KAFKA_USERNAME = process.env.KAFKA_USERNAME || '';
+const KAFKA_PASSWORD = process.env.KAFKA_PASSWORD || '';
+const TOPIC = process.env.KAFKA_TOPIC || 'monkihub_messages';
 
-async function initRedis() {
+let producer = null;
+let kafkaAvailable = false;
+
+// In-memory fallback
+const inMemorySubscribers = [];
+
+async function initKafka() {
+  if (!KAFKA_BROKER || !KAFKA_USERNAME || !KAFKA_PASSWORD) {
+    console.log('⚠️  Kafka env vars not set — using in-memory fallback');
+    return;
+  }
+
   try {
-    const Redis = require('ioredis');
-    pubClient = new Redis({ host: '127.0.0.1', port: 6379, connectTimeout: 2000, maxRetriesPerRequest: 0, lazyConnect: true });
-    subClient = new Redis({ host: '127.0.0.1', port: 6379, connectTimeout: 2000, maxRetriesPerRequest: 0, lazyConnect: true });
+    const kafka = new Kafka({
+      clientId: 'monkihub-server',
+      brokers: [KAFKA_BROKER],
+      ssl: true,
+      sasl: { mechanism: 'scram-sha-256', username: KAFKA_USERNAME, password: KAFKA_PASSWORD },
+    });
 
-    // Suppress unhandled error events — we handle them below
-    pubClient.on('error', () => {});
-    subClient.on('error', () => {});
-
-    await pubClient.connect();
-    await pubClient.ping();
-    await subClient.connect();
-    redisAvailable = true;
-    console.log('✅ Redis connected');
-  } catch {
-    redisAvailable = false;
-    if (pubClient) { pubClient.disconnect(); pubClient = null; }
-    if (subClient) { subClient.disconnect(); subClient = null; }
-    console.log('⚠️  Redis unavailable — using in-memory queue fallback');
+    producer = kafka.producer();
+    await producer.connect();
+    kafkaAvailable = true;
+    console.log('✅ Kafka producer connected');
+  } catch (err) {
+    kafkaAvailable = false;
+    producer = null;
+    console.log('⚠️  Kafka unavailable — using in-memory fallback:', err.message);
   }
 }
 
 async function publishMessage(channel, payload) {
   const data = JSON.stringify(payload);
-  if (redisAvailable && pubClient) {
-    await pubClient.publish(channel, data);
+
+  if (kafkaAvailable && producer) {
+    await producer.send({
+      topic: TOPIC,
+      messages: [{ key: channel, value: data }],
+    });
   } else {
-    inMemoryQueue.push({ channel, data });
-    if (subscribers[channel]) subscribers[channel].forEach(cb => cb(data));
+    // In-memory fallback: notify any in-process subscribers directly
+    inMemorySubscribers.forEach(cb => cb(data));
   }
 }
 
-async function subscribeToChannel(channel, callback) {
-  if (redisAvailable && subClient) {
-    await subClient.subscribe(channel);
-    subClient.on('message', (ch, msg) => { if (ch === channel) callback(msg); });
-  } else {
-    if (!subscribers[channel]) subscribers[channel] = [];
-    subscribers[channel].push(callback);
-  }
+function subscribeInMemory(callback) {
+  inMemorySubscribers.push(callback);
 }
 
-function getQueue() { return inMemoryQueue; }
-function isRedisAvailable() { return redisAvailable; }
+function isKafkaAvailable() { return kafkaAvailable; }
+function getTopic() { return TOPIC; }
 
-module.exports = { initRedis, publishMessage, subscribeToChannel, getQueue, isRedisAvailable };
+module.exports = { initKafka, publishMessage, subscribeInMemory, isKafkaAvailable, getTopic };

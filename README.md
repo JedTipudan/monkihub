@@ -1,6 +1,6 @@
 # 🐒 MonkiHub
 
-A full-stack team collaboration and task management platform built with Node.js (Express), vanilla HTML/CSS/JS, XML data storage, Socket.IO for real-time messaging, and Redis (with in-memory fallback) as a message broker.
+A full-stack team collaboration and task management platform built with Node.js (Express), vanilla HTML/CSS/JS, XML data storage, Socket.IO for real-time messaging, and **Apache Kafka (Redpanda)** as the message broker.
 
 **🌐 Live Demo**: [Your Render URL Here]
 
@@ -10,7 +10,7 @@ A full-stack team collaboration and task management platform built with Node.js 
 
 MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed for managers and remote teams. It enables:
 - Real-time task assignment and tracking
-- Direct messaging with live notifications
+- Direct messaging powered by **Apache Kafka** message broker
 - Proof-of-work submission and approval workflow
 - Payment request and processing system
 - Automated background scripts for notifications and reporting
@@ -22,10 +22,11 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 
 ## ✨ Key Features
 
-### 🔔 Real-Time Messaging & Notifications
-- Direct messaging between users
+### 🔔 Real-Time Messaging with Kafka
+- Direct messaging between users via **Apache Kafka** broker
+- Messages published to Kafka topic → consumer processes → delivers via Socket.IO
+- **If consumer is stopped → messages are NOT delivered** (demonstrates broker dependency)
 - Live notification system (bell icon + banners)
-- Socket.IO for instant updates
 - Unread message tracking
 - Mobile-friendly notifications
 
@@ -44,7 +45,7 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - Task completion statistics
 
 ### ⚙️ Background Scripts
-- **Consumer**: Message broker subscriber with Redis/in-memory fallback
+- **Consumer**: Kafka topic subscriber — saves and delivers messages
 - **Notifier**: Auto-notification for new tasks
 - **Archiver**: Auto-archive old data (7+ days)
 - **Reporter**: HTML report generator with live file watching
@@ -63,10 +64,11 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - Optimized for all screen sizes
 
 ### 👥 User Management
-- Role-based access (Admin/User)
+- **Super Admin** role — only Super Admin can create other admins
+- Role-based access (Super Admin / Admin / User)
 - User registration and authentication
 - Profile management with avatar upload
-- Admin user creation scripts
+- Admin user creation from UI (Super Admin only)
 
 ---
 
@@ -99,9 +101,9 @@ MonkiHub/
 │   │   └── xmlRoutes.js
 │   ├── services/             # Business logic
 │   │   ├── xmlService.js      # XML read/write operations
-│   │   └── brokerService.js   # Redis/in-memory message broker
+│   │   └── brokerService.js   # Kafka producer (Redpanda)
 │   ├── middleware/           # Auth middleware
-│   │   └── auth.js
+│   │   └── auth.js            # authenticate, requireAdmin, requireSuperAdmin
 │   ├── data/                 # XML data storage
 │   │   ├── users.xml
 │   │   ├── tasks.xml
@@ -115,13 +117,16 @@ MonkiHub/
 │   │   ├── tasks.xslt
 │   │   └── logs.xslt
 │   ├── scripts/              # Background automation scripts
-│   │   ├── consumer.js        # Message broker consumer
+│   │   ├── consumer.js        # Kafka consumer — saves & delivers messages
 │   │   ├── notifier.js        # Auto task notifications
 │   │   ├── archiver.js        # Auto data archiving
 │   │   └── reporter.js        # HTML report generator
 │   ├── createAdmin.js        # Admin user creation script
 │   ├── promoteToAdmin.js     # User promotion script
+│   ├── makeSuperAdmin.js     # Upgrade user to Super Admin
+│   ├── resetAdminPassword.js # Reset admin password
 │   ├── server.js             # Main server file
+│   ├── .env                  # Environment variables (not committed)
 │   └── package.json
 ├── frontend/
 │   ├── index.html            # Main app interface
@@ -145,7 +150,7 @@ MonkiHub/
 
 ### Prerequisites
 - Node.js v18+
-- Redis (optional — system works without it with in-memory fallback)
+- Redpanda Cloud account (free) — or any Kafka-compatible broker
 - Git (for deployment)
 
 ### Local Development
@@ -159,24 +164,48 @@ cd monkihub
 cd backend
 npm install
 
+# Configure environment variables
+cp .env.example .env
+# Fill in your Kafka credentials in .env
+
 # Start the server
-npm start
+node -r dotenv/config server.js
 ```
+
+### Start the Kafka Consumer (Required for Chat)
+
+Open a **second terminal**:
+```bash
+cd backend
+node -r dotenv/config scripts/consumer.js
+```
+
+> ⚠️ **Chat will NOT work without the consumer running.** This is by design — it demonstrates the Kafka producer-consumer pattern.
 
 Server runs on `http://localhost:3000`
 
-### Open Frontend
+### Environment Variables
 
-Open `http://localhost:3000` in your browser (landing page)  
-Or go to `http://localhost:3000/index.html` (main app)
+Create `backend/.env`:
+```
+PORT=3000
+JWT_SECRET=your_secret_key_here
+
+# Redpanda / Kafka
+KAFKA_BROKER=your-broker.redpanda.com:9092
+KAFKA_USERNAME=your-username
+KAFKA_PASSWORD=your-password
+KAFKA_TOPIC=monkihub_messages
+
+# Server URL (for consumer Socket.IO connection)
+SERVER_URL=http://localhost:3000
+```
 
 ### Default Credentials
 
 | Username | Password | Role |
 |---|---|---|
-| admin | password123 | Admin |
-| alice | password123 | User |
-| bob | password123 | User |
+| admin | admin | Super Admin |
 
 ---
 
@@ -205,19 +234,50 @@ Or go to `http://localhost:3000/index.html` (main app)
      - **Instance Type**: Free
    - Click **Create Web Service**
 
-3. **Keep it Online 24/7** (Optional):
+3. **Add Environment Variables on Render**:
+   - Go to your service → **Environment** tab
+   - Add all variables from `.env`:
+     - `KAFKA_BROKER`
+     - `KAFKA_USERNAME`
+     - `KAFKA_PASSWORD`
+     - `KAFKA_TOPIC`
+     - `SERVER_URL` → your Render URL (e.g. `https://monkihub.onrender.com`)
+     - `JWT_SECRET`
+
+4. **Keep it Online 24/7** (Optional):
    - Sign up at https://uptimerobot.com
    - Add HTTP monitor with your Render URL
    - Set interval to 5 minutes
-   - This prevents the free tier from sleeping
 
-### Environment Variables (Optional)
+---
+
+## 🔥 Kafka Message Flow
 
 ```
-PORT=3000
-JWT_SECRET=your_secret_key_here
-REDIS_URL=redis://your-redis-url (optional)
+User sends message
+       ↓
+POST /api/messages
+       ↓
+Published to Kafka topic (monkihub_messages)
+       ↓
+consumer.js reads from Kafka topic
+       ↓
+Saves message to messages.xml
+       ↓
+Emits via Socket.IO → receiver sees message
 ```
+
+### Demo Concept (For Presentation)
+
+| Consumer Status | Chat Works? |
+|---|---|
+| ✅ Running | Messages delivered in real-time |
+| ❌ Stopped | Messages NOT delivered |
+
+**Stop the consumer** from Script Manager → try sending a message → nothing appears.  
+**Start the consumer** → messages flow again. ✅
+
+This demonstrates the **producer-consumer pattern** used in real-world systems like Slack, WhatsApp, and Discord.
 
 ---
 
@@ -229,6 +289,8 @@ REDIS_URL=redis://your-redis-url (optional)
 | POST | /api/auth/login | No | Login, returns JWT |
 | POST | /api/auth/register | No | Register new user |
 | GET | /api/auth/users | Admin | List all users |
+| POST | /api/auth/create-admin | Super Admin | Create new admin user |
+| DELETE | /api/auth/users/:username | Admin | Delete user |
 
 ### Tasks
 | Method | Endpoint | Auth | Description |
@@ -241,18 +303,18 @@ REDIS_URL=redis://your-redis-url (optional)
 ### Messages
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| GET | /api/messages | Yes | Get messages (filter by ?room=) |
-| POST | /api/messages | Yes | Send message |
+| GET | /api/messages | Yes | Get messages |
+| POST | /api/messages | Yes | Publish message to Kafka |
 
 ### Payments
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | POST | /api/payments | Yes | Submit payment request |
-| GET | /api/payments | Admin | Get all payments with task stats |
+| GET | /api/payments | Admin | Get all payments |
 | GET | /api/payments/mine | Yes | Get own payments |
-| POST | /api/payments/:id/pay | Admin | Mark payment as paid |
-| POST | /api/payments/:id/reject | Admin | Reject payment request |
-| DELETE | /api/payments/:id | Admin | Delete payment record |
+| POST | /api/payments/:id/pay | Admin | Mark as paid |
+| POST | /api/payments/:id/reject | Admin | Reject request |
+| DELETE | /api/payments/:id | Admin | Delete record |
 
 ### Scripts
 | Method | Endpoint | Auth | Description |
@@ -273,97 +335,73 @@ REDIS_URL=redis://your-redis-url (optional)
 
 ## Background Scripts
 
-All scripts can be run manually or managed via the Script Manager panel (admin only).
+### consumer.js — Kafka Message Consumer ⭐
+Subscribes to the Kafka topic `monkihub_messages`. For each message received:
+1. Saves to `messages.xml`
+2. Delivers to users via Socket.IO
 
-### consumer.js — Message Consumer
-Subscribes to Redis `monkihub:messages` channel and logs each message to `logs.xml`. Falls back to a simulation if Redis is unavailable.
+**⚠️ Chat requires this script to be running.**
 ```bash
 cd backend
-node scripts/consumer.js
+node -r dotenv/config scripts/consumer.js
 ```
 
 ### notifier.js — Auto Notifier
-Polls `tasks.xml` every 5 seconds. Sends system messages to the `general` room when new tasks are created or tasks are marked as done. Stops automatically when all tasks are completed.
+Polls `tasks.xml` every 5 seconds. Sends system messages when new tasks are created or completed.
 ```bash
-node scripts/notifier.js
+node -r dotenv/config scripts/notifier.js
 ```
 
 ### archiver.js — Auto Archiver
-Moves tasks and messages older than 7 days from their XML files into `archive.xml`. Runs once and exits.
+Moves tasks and messages older than 7 days into `archive.xml`.
 ```bash
-node scripts/archiver.js
+node -r dotenv/config scripts/archiver.js
 ```
 
 ### reporter.js — Report Generator
-Reads all XML data and generates an HTML summary report at `data/report.html` with task stats, per-user breakdowns, payment data, and recent activity. Includes file watcher for auto-regeneration on data changes.
+Generates an HTML summary report at `data/report.html` with task stats, payroll data, and activity. Includes file watcher for auto-regeneration.
 ```bash
-node scripts/reporter.js
+node -r dotenv/config scripts/reporter.js
 ```
 
 ---
 
 ## 👥 User Management
 
-### Create Admin User
+### Super Admin System
 
-**Method 1: Command Line Script**
+MonkiHub uses a **Super Admin** role hierarchy:
+
+| Role | Create Admins | Manage Tasks | Delete Users | View Logs |
+|---|---|---|---|---|
+| **Super Admin** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Admin** | ❌ No | ✅ Yes | ✅ Yes | ✅ Yes |
+| **User** | ❌ No | ❌ No | ❌ No | ❌ No |
+
+### Create Admin from Website (Super Admin Only)
+
+1. Login as **Super Admin** (`admin`)
+2. Go to **Scripts Panel** → **User Manager** → **Start**
+3. Fill in the **"➕ Create New Admin"** form
+4. Click **"Create Admin"**
+
+### Create Admin via Script
 ```bash
 cd backend
 node createAdmin.js <username> <password> [email]
-
-# Example:
-node createAdmin.js manager password123 manager@company.com
 ```
 
-**Method 2: Promote Existing User**
+### Upgrade to Super Admin
 ```bash
 cd backend
-node promoteToAdmin.js <username>
-
-# Example:
-node promoteToAdmin.js alice
+node makeSuperAdmin.js
 ```
 
-**Method 3: API Endpoint**
+### Reset Admin Password
 ```bash
-POST /api/auth/create-admin
-Headers: Authorization: Bearer <admin_token>
-Body: {
-  "username": "newadmin",
-  "password": "securepass",
-  "email": "admin@company.com"
-}
+cd backend
+node resetAdminPassword.js
 ```
-
-### Delete User
-
-Admins can delete users through:
-- Script Manager → User Manager panel
-- API: `DELETE /api/auth/users/:username`
-
----
-
-## User Roles
-
-| Role | Permissions |
-|---|---|
-| admin | Create/edit/delete tasks, view logs, send messages, manage payments, run scripts, view XML, create admins, delete users |
-| user | View assigned tasks, send messages, submit payment requests, view own payments, submit proof of work |
-
----
-
-## Key Features
-
-- **XML as database** — All data stored in XML files, managed via `xml2js`
-- **XSLT transformations** — `messages.xslt`, `tasks.xslt`, `logs.xslt` render XML as HTML tables
-- **Real-time** — Socket.IO broadcasts task, message, and payment events to all connected clients
-- **Payment system** — Users submit payment requests; admins approve/reject with optional proof of payment
-- **Script Manager** — Admins can start/stop/monitor background scripts from the UI with live log streaming
-- **Redis broker** — PubSub on `monkihub:messages` with in-memory fallback
-- **JWT auth** — Stateless authentication with role-based middleware guards
-- **Mobile responsive** — Hamburger menu, touch-friendly interface, auto-closing sidebar
-- **Notification system** — Real-time bell notifications and banners for messages and tasks
-- **File uploads** — Task reference images and proof of work stored as base64
 
 ---
 
@@ -373,16 +411,24 @@ Admins can delete users through:
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
 - **Socket.IO** - Real-time bidirectional communication
+- **KafkaJS** - Apache Kafka client
 - **xml2js** - XML parsing (DOM-based)
 - **bcryptjs** - Password hashing
 - **jsonwebtoken** - JWT authentication
-- **ioredis** - Redis client (optional)
 - **uuid** - Unique ID generation
+- **socket.io-client** - Consumer connects back to server
 
 ### Frontend
 - **Vanilla JavaScript** - No frameworks
 - **HTML5/CSS3** - Modern web standards
 - **Socket.IO Client** - Real-time updates
+
+### Message Broker
+- **Apache Kafka** (via Redpanda Cloud) - Message broker
+- **Redpanda** - Kafka-compatible serverless broker (free tier)
+- **Topic**: `monkihub_messages`
+- **Producer**: `messageController.js`
+- **Consumer**: `scripts/consumer.js`
 
 ### Data & Transformation
 - **XML** - Primary data storage format
@@ -398,13 +444,13 @@ Admins can delete users through:
 
 ## Course Requirements Compliance
 
-This project fulfills all requirements for the Web-Based Systems course:
-
-### ✅ Messaging System
-- Real-time chat with Socket.IO
-- Message broker (Redis/in-memory)
-- Notification system
-- Background message consumer
+### ✅ Messaging System (Kafka)
+- Apache Kafka producer-consumer pattern
+- Messages published to Kafka topic `monkihub_messages`
+- Consumer subscribes, processes, and delivers messages
+- Chat breaks when consumer is stopped (demonstrates broker dependency)
+- Socket.IO for real-time delivery after Kafka processing
+- Notification system with bell icon and banners
 
 ### ✅ XML Data Handling
 - 6 XML files (users, tasks, messages, payments, logs, archive)
@@ -465,14 +511,14 @@ This project fulfills all requirements for the Web-Based Systems course:
               ┌─────────────┴─────────────┐
               │                           │
 ┌─────────────▼──────────┐   ┌───────────▼────────────┐
-│   Message Broker       │   │   Background Scripts   │
+│   Apache Kafka Broker  │   │   Background Scripts   │
 │  ┌──────────────────┐  │   │  ┌──────────────────┐  │
-│  │ Redis (optional) │  │   │  │   Consumer.js    │  │
-│  │   or In-Memory   │  │   │  │   Notifier.js    │  │
-│  │     PubSub       │  │   │  │   Archiver.js    │  │
-│  └──────────────────┘  │   │  │   Reporter.js    │  │
-└────────────────────────┘   │  └──────────────────┘  │
-                             └───────────────────────┘
+│  │  Redpanda Cloud  │  │   │  │   Consumer.js    │  │
+│  │  (Kafka-compat.) │  │   │  │   Notifier.js    │  │
+│  │  Topic:          │  │   │  │   Archiver.js    │  │
+│  │  monkihub_msgs   │  │   │  │   Reporter.js    │  │
+│  └──────────────────┘  │   │  └──────────────────┘  │
+└────────────────────────┘   └───────────────────────┘
                                         │
 ┌───────────────────────────────────────▼───────────────┐
 │                    Data Layer                          │
@@ -484,8 +530,8 @@ This project fulfills all requirements for the Web-Based Systems course:
 │  │  ┌──────────┐  ┌──────────┐  └──────────┘      │ │
 │  │  │payments  │  │ logs.xml │  ┌──────────┐      │ │
 │  │  │  .xml    │  └──────────┘  │archive   │      │ │
-│  │  └──────────┘                 │  .xml    │      │ │
-│  │                               └──────────┘      │ │
+│  │  └──────────┘                │  .xml    │      │ │
+│  │                              └──────────┘      │ │
 │  └──────────────────────────────────────────────────┘ │
 │  ┌──────────────────────────────────────────────────┐ │
 │  │           XSLT Transformations                   │ │
@@ -493,52 +539,6 @@ This project fulfills all requirements for the Web-Based Systems course:
 │  └──────────────────────────────────────────────────┘ │
 └────────────────────────────────────────────────────────┘
 ```
-
----
-
-## API Documentation
-
-For complete API documentation, see the API Endpoints section in the original README.
-
-Key endpoints:
-- `POST /api/auth/login` - User authentication
-- `POST /api/auth/create-admin` - Create admin user
-- `GET /api/tasks` - Get tasks
-- `POST /api/messages` - Send message
-- `POST /api/payments` - Submit payment request
-- `GET /api/scripts/status` - Get script status
-- `GET /api/xml/transform/:file` - Transform XML to HTML
-
----
-
-## Screenshots
-
-### Landing Page
-![Landing Page](docs/screenshots/landing.png)
-
-### Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
-
-### Task Board (Kanban)
-![Task Board](docs/screenshots/tasks.png)
-
-### Real-Time Chat
-![Chat](docs/screenshots/chat.png)
-
-### Notifications
-![Notifications](docs/screenshots/notifications.png)
-
-### Payment System
-![Payments](docs/screenshots/payments.png)
-
-### Script Manager
-![Scripts](docs/screenshots/scripts.png)
-
-### XML Viewer
-![XML Viewer](docs/screenshots/xml-viewer.png)
-
-### Mobile View
-![Mobile](docs/screenshots/mobile.png)
 
 ---
 
@@ -563,16 +563,8 @@ This project is created for educational purposes as part of a Web-Based Systems 
 ## Acknowledgments
 
 - Built as a final project for Web-Based Systems course
-- Demonstrates integration of messaging systems, XML processing, XSLT transformations, and automation scripting
+- Demonstrates Apache Kafka producer-consumer pattern, XML processing, XSLT transformations, and automation scripting
 - Special thanks to all team members who contributed to this project
-
----
-
-## Contact & Support
-
-For questions or issues:
-- Open an issue on GitHub
-- Contact the development team
 
 ---
 

@@ -930,4 +930,64 @@
     <detail>janine logged in</detail>
     <timestamp>2026-05-07T02:12:17.756Z</timestamp>
   </log>
+  <log id="log-0e0801af">
+    <action>USER_LOGIN</action>
+    <actor>admin</actor>
+    <detail>admin logged in</detail>
+    <timestamp>2026-05-09T02:35:04.127Z</timestamp>
+  </log>
+  <log id="log-bffd4cac">
+    <action>MESSAGE_PUBLISHED</action>
+    <actor>admin</actor>
+    <detail>Message published to Kafka for jed</detail>
+    <timestamp>2026-05-09T02:35:12.117Z</timestamp>
+  </log>
+  <log id="log-688a26f7">
+    <action>USER_LOGIN</action>
+    <actor>jed</actor>
+    <detail>jed logged in</detail>
+    <timestamp>2026-05-09T02:35:30.448Z</timestamp>
+  </log>
+  <log id="log-2ca876c3">
+    <action>MESSAGE_PUBLISHED</action>
+    <actor>jed</actor>
+    <detail>Message published to Kafka for admin</detail>
+    <timestamp>2026-05-09T02:35:37.609Z</timestamp>
+  </log>
+  <log id="log-17b7a534">
+    <action>MESSAGE_PUBLISHED</action>
+    <actor>jed</actor>
+    <detail>Message published to Kafka for admin</detail>
+    <timestamp>2026-05-09T02:38:16.175Z</timestamp>
+  </log>
+  <log id="log-c67ea2e7">
+    <action>MESSAGE_PUBLISHED</action>
+    <actor>jed</actor>
+    <detail>Message published to Kafka for admin</detail>
+    <timestamp>2026-05-09T02:41:20.037Z</timestamp>
+  </log>
+  <log id="log-6f2fb74a">
+    <action>MESSAGE_PUBLISHED</action>
+    <actor>jed</actor>
+    <detail>Message published to Kafka for admin</detail>
+    <timestamp>2026-05-09T02:41:23.827Z</timestamp>
+  </log>
+  <log id="log-81505956">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: jed → admin: "hellow"</detail>
+    <timestamp>2026-05-09T02:41:23.878Z</timestamp>
+  </log>
+  <log id="log-d021b4a0">
+    <action>USER_LOGIN</action>
+    <actor>admin</actor>
+    <detail>admin logged in</detail>
+    <timestamp>2026-05-09T02:41:50.004Z</timestamp>
+  </log>
+  <log id="log-b838a1f8">
+    <action>MESSAGE_CONSUMED</action>
+    <actor>kafka-consumer</actor>
+    <detail>Delivered: admin → jed: "hi"</detail>
+    <timestamp>2026-05-09T02:41:54.478Z</timestamp>
+  </log>
 </logs>

@@ -1,82 +1,134 @@
 /**
- * MonkiHub - Background Message Consumer Script
- * Listens to the message broker, processes messages, and logs activity.
- * Run with: node scripts/consumer.js  (from within the backend/ directory)
+ * MonkiHub — Kafka Message Consumer
+ * Subscribes to Kafka topic → saves to XML → delivers via Socket.IO
+ * ⚠️  If this consumer is NOT running, messages will NOT be delivered or saved.
  */
 
+require('dotenv').config();
+const { Kafka } = require('kafkajs');
 const { initXmlFiles } = require('../services/xmlService');
+const MessageModel = require('../models/MessageModel');
 const LogModel = require('../models/LogModel');
+const { io: ioClient } = require('socket.io-client');
 
-let redisAvailable = false;
+const KAFKA_BROKER   = process.env.KAFKA_BROKER   || '';
+const KAFKA_USERNAME = process.env.KAFKA_USERNAME  || '';
+const KAFKA_PASSWORD = process.env.KAFKA_PASSWORD  || '';
+const TOPIC          = process.env.KAFKA_TOPIC     || 'monkihub_messages';
+const SERVER_URL     = process.env.SERVER_URL      || 'http://localhost:3000';
+
+let socket = null;
+
+function connectSocket() {
+  return new Promise((resolve) => {
+    socket = ioClient(SERVER_URL, { reconnection: true });
+    socket.on('connect', () => {
+      console.log('🔌 Connected to MonkiHub server via Socket.IO, id:', socket.id);
+      // Register as consumer so server knows who we are
+      socket.emit('register', '__kafka_consumer__');
+      resolve();
+    });
+    socket.on('disconnect', () => console.log('🔌 Disconnected from server, reconnecting...'));
+    socket.on('connect_error', (e) => console.error('❌ Socket error:', e.message));
+    setTimeout(resolve, 5000); // fallback if connect takes too long
+  });
+}
 
 async function startConsumer() {
   await initXmlFiles();
-  console.log('\n🐒 MonkiHub Message Consumer Started');
-  console.log('=====================================');
+
+  console.log('\n🐒 MonkiHub Kafka Consumer Started');
+  console.log('====================================');
+
+  if (!KAFKA_BROKER || !KAFKA_USERNAME || !KAFKA_PASSWORD) {
+    console.log('⚠️  Kafka env vars missing — running in simulation mode\n');
+    runSimulation();
+    return;
+  }
+
+  // Connect socket first
+  await connectSocket();
+
+  const kafka = new Kafka({
+    clientId: 'monkihub-consumer',
+    brokers: [KAFKA_BROKER],
+    ssl: true,
+    sasl: { mechanism: 'scram-sha-256', username: KAFKA_USERNAME, password: KAFKA_PASSWORD },
+  });
+
+  const consumer = kafka.consumer({ groupId: 'monkihub-group' });
 
   try {
-    const Redis = require('ioredis');
-    const sub = new Redis({ host: '127.0.0.1', port: 6379, connectTimeout: 2000, maxRetriesPerRequest: 0, lazyConnect: true });
-    sub.on('error', () => {});
-    await sub.connect();
-    await sub.ping();
-    redisAvailable = true;
-    console.log('✅ Connected to Redis broker');
-    console.log('👂 Listening on channel: monkihub:messages\n');
+    await consumer.connect();
+    console.log('✅ Connected to Kafka broker');
+    await consumer.subscribe({ topic: TOPIC, fromBeginning: false });
+    console.log(`👂 Subscribed to topic: ${TOPIC}\n`);
 
-    await sub.subscribe('monkihub:messages');
-    sub.on('message', async (channel, rawMsg) => {
-      await processMessage(channel, rawMsg);
+    await consumer.run({
+      eachMessage: async ({ message }) => {
+        await processMessage(message.value.toString());
+      },
     });
 
-    sub.on('error', (err) => console.error('Redis error:', err.message));
-  } catch {
-    console.log('⚠️  Redis not available — running in simulation mode\n');
+    process.on('SIGTERM', async () => {
+      console.log('\n🛑 Consumer stopping...');
+      await consumer.disconnect();
+      if (socket) socket.disconnect();
+      process.exit(0);
+    });
+
+  } catch (err) {
+    console.error('❌ Kafka connection failed:', err.message);
     runSimulation();
   }
 }
 
-async function processMessage(channel, rawMsg) {
+async function processMessage(raw) {
   try {
-    const msg = JSON.parse(rawMsg);
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] 📨 Message received on ${channel}`);
-    console.log(`   From: ${msg.sender} | Room: ${msg.room}`);
-    console.log(`   Content: "${msg.content}"`);
+    const msg = JSON.parse(raw);
+    console.log(`\n📨 Message received from Kafka`);
+    console.log(`   From : ${msg.sender} → To: ${msg.receiver}`);
+    console.log(`   Text : "${msg.content}"`);
+
+    // Save to messages.xml
+    const saved = await MessageModel.create({
+      sender:   msg.sender,
+      receiver: msg.receiver,
+      content:  msg.content,
+      room:     msg.room,
+    });
+    console.log(`   💾 Saved to XML, id: ${saved.id}`);
+
+    // Deliver via Socket.IO back to server
+    if (socket && socket.connected) {
+      socket.emit('consumer:deliver', saved);
+      console.log(`   📡 Emitted consumer:deliver to server`);
+    } else {
+      console.log(`   ⚠️  Socket not connected, message saved but not delivered live`);
+    }
 
     await LogModel.create({
       action: 'MESSAGE_CONSUMED',
-      actor: 'consumer-script',
-      detail: `Processed message from ${msg.sender} in #${msg.room}: "${msg.content.substring(0, 50)}"`
+      actor:  'kafka-consumer',
+      detail: `Delivered: ${msg.sender} → ${msg.receiver}: "${msg.content.substring(0, 50)}"`,
     });
-    console.log(`   ✅ Logged to activity log\n`);
+
+    console.log(`   ✅ Done\n`);
   } catch (err) {
-    console.error('Error processing message:', err.message);
+    console.error('❌ Error processing message:', err.message);
   }
 }
 
 function runSimulation() {
-  const sampleMessages = [
-    { id: 'sim-001', sender: 'alice', room: 'general', content: 'Hey team, sprint planning at 3pm!' },
-    { id: 'sim-002', sender: 'bob', room: 'dev', content: 'PR #42 is ready for review' },
-    { id: 'sim-003', sender: 'admin', room: 'general', content: 'Server maintenance tonight at 11pm' },
-    { id: 'sim-004', sender: 'alice', room: 'dev', content: 'Fixed the XML parsing bug' },
-    { id: 'sim-005', sender: 'bob', room: 'general', content: 'Great work everyone! 🎉' }
+  const samples = [
+    { sender: 'admin', receiver: 'jed', room: 'admin:jed', content: 'Hey, sprint planning at 3pm!' },
+    { sender: 'jed',   receiver: 'admin', room: 'admin:jed', content: 'On it!' },
   ];
-
-  console.log('🔄 Simulating message queue processing...\n');
-  let index = 0;
-
+  console.log('🔄 Simulating Kafka message processing...\n');
+  let i = 0;
   const interval = setInterval(async () => {
-    if (index >= sampleMessages.length) {
-      console.log('\n✅ Simulation complete. All messages processed and logged.');
-      console.log('📄 Check data/logs.xml for activity records.');
-      clearInterval(interval);
-      return;
-    }
-
-    const msg = sampleMessages[index++];
-    await processMessage('monkihub:messages', JSON.stringify(msg));
+    if (i >= samples.length) { clearInterval(interval); return; }
+    await processMessage(JSON.stringify(samples[i++]));
   }, 1500);
 }
 
