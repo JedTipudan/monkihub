@@ -44,10 +44,16 @@ const UserModel = {
   },
 
   async validatePassword(username, password) {
-    const user = await this.findByUsername(username);
-    if (!user) return null;
-    const match = await bcrypt.compare(password, user.password[0]);
-    return match ? { id: user.$.id, username: user.username[0], role: user.role[0], isSuperAdmin: user.isSuperAdmin?.[0] === 'true' } : null;
+    const raw = await this.findByUsername(username);
+    if (!raw) return null;
+    const match = await bcrypt.compare(password, raw.password[0]);
+    if (!match) return null;
+    return {
+      id: raw.$.id,
+      username: raw.username[0],
+      role: raw.role[0],
+      isSuperAdmin: raw.isSuperAdmin?.[0] === 'true'
+    };
   },
 
   async updateProfile(username, { displayName, avatar, email, password }) {
@@ -62,9 +68,13 @@ const UserModel = {
     data.users.user = users;
     await writeXml(FILE, data);
     return {
-      id: users[idx].$.id, username, role: users[idx].role[0],
-      email: users[idx].email[0], displayName: users[idx].displayName?.[0] || '',
-      avatar: users[idx].avatar?.[0] || '', isSuperAdmin: users[idx].isSuperAdmin?.[0] === 'true'
+      id: users[idx].$.id,
+      username,
+      role: users[idx].role[0],
+      email: users[idx].email[0],
+      displayName: users[idx].displayName?.[0] || '',
+      avatar: users[idx].avatar?.[0] || '',
+      isSuperAdmin: users[idx].isSuperAdmin?.[0] === 'true'
     };
   },
 

@@ -75,7 +75,8 @@ async function initXmlFiles() {
     const adminUser = {
       $: { id: `user-${uuidv4().slice(0, 8)}` },
       username: ['admin'], password: [hashed], role: ['admin'],
-      email: ['admin@monkihub.local'], createdAt: [new Date().toISOString()]
+      email: ['admin@monkihub.local'], createdAt: [new Date().toISOString()],
+      isSuperAdmin: ['true']
     };
     if (!parsed.users) parsed.users = { user: [] };
     if (!Array.isArray(parsed.users.user)) parsed.users.user = [];
