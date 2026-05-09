@@ -377,7 +377,7 @@ async function loadDashboard() {
     document.getElementById('stat-users').textContent = users.length;
     document.getElementById('stat-inprogress').textContent = tasks.filter(t => t.status === 'in-progress').length;
 
-    // Activity feed — merge tasks + messages, sort by time, show latest 8
+    // Activity feed - merge tasks + messages, sort by time, show latest 8
     const taskEvents = tasks.map(t => ({ time: t.createdAt, type: 'task', icon: '✅', text: `Task "${t.title}" assigned to @${t.assignee}`, badge: t.priority, badgeClass: `badge-${t.priority}` }));
     const msgEvents = messages.map(m => ({ time: m.timestamp, type: 'msg', icon: '💬', text: `${m.sender} → ${m.receiver}: ${m.content.substring(0, 50)}` }));
     const feed = [...taskEvents, ...msgEvents].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 8);
