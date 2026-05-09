@@ -233,6 +233,8 @@ SERVER_URL=http://localhost:3000
 
 ## 🚀 Deployment
 
+> ⚠️ **Important**: XML data files are now excluded from Git to ensure **data persists between deployments**. See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
+
 ### Deploy to Render (Free)
 
 1. **Push to GitHub**:
