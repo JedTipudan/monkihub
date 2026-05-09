@@ -27,24 +27,24 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - Messages published to Kafka topic → consumer processes → delivers via Socket.IO
 - **If consumer is stopped → messages are NOT delivered** (demonstrates broker dependency)
 - Live notification system (bell icon + banners)
-- Unread message tracking
-- Mobile-friendly notifications
+- Unread message tracking per user
+- Mobile-friendly notification banners
 
 ### 📋 Task Management
 - Kanban board (To Do, In Progress, Pending Review)
-- Task assignment with reference images upload
+- Task assignment with reference image upload
 - Task due dates with calendar visualization
 - Proof-of-work submission system
-- Admin approval/rejection workflow
+- Admin approval/rejection workflow with reason
 - Approval history panel for completed tasks
 - Priority levels (High, Medium, Low)
-- Visual task status indicators
+- Visual task status indicators and due date badges
 
 ### 💰 Payment System
 - Payment request submission (GCash, Maya, Bank Transfer, PayPal)
 - Admin approval with proof of payment upload
 - Payment history tracking
-- Task completion statistics
+- Task completion statistics per user
 
 ### ⚙️ Background Scripts
 - **Consumer**: Kafka topic subscriber — saves and delivers messages
@@ -71,6 +71,7 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - User registration and authentication
 - Profile management with avatar upload
 - Admin user creation from UI (Super Admin only)
+- `/auth/list` endpoint accessible to all authenticated users (for chat)
 
 ### 📅 Calendar & Scheduling
 - Visual calendar with task due dates
@@ -78,17 +79,26 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - Monthly view with navigation
 - Quick task overview on calendar dates
 - Due date tracking and alerts
+- Upcoming due dates widget on dashboard
 
 ### 🛡️ Security & DDoS Protection
 - **Multi-layer rate limiting** (500 req/15min global, 60 req/min API)
 - **Auto IP blacklisting** (50 failed attempts → 24hr ban)
 - **Request size limits** (10MB max)
 - **Suspicious pattern detection** (XSS, SQL injection, path traversal)
-- **Security headers** (Helmet.js - CSP, HSTS, XSS protection)
+- **Security headers** (Helmet.js — CSP, HSTS, XSS protection)
+- **CSP `script-src-attr`** allows inline event handlers (`onclick`, `oninput`, etc.)
 - **Socket.IO connection limits** (10 per IP)
-- **Password strength validation** with real-time indicator
+- **Password strength validation** with real-time indicator (min. fair strength required)
 - **Failed login tracking** with automatic lockout
-- See [SECURITY.md](SECURITY.md) for full details
+
+### 🔑 Password Strength Validation
+- Real-time strength meter (Weak / Fair / Good / Strong)
+- Requirements checklist (8+ chars, uppercase, lowercase, number, special char)
+- Password confirmation field with match indicator
+- Toggle password visibility button
+- Applied on registration and profile update
+- Minimum **fair** strength (3/5 criteria) required to submit
 
 ---
 
@@ -120,14 +130,14 @@ MonkiHub/
 │   │   ├── logRoutes.js
 │   │   └── xmlRoutes.js
 │   ├── services/             # Business logic
-│   │   ├── xmlService.js      # XML read/write operations
+│   │   ├── xmlService.js      # XML read/write + admin seed
 │   │   └── brokerService.js   # Kafka producer (Redpanda)
 │   ├── middleware/           # Auth & Security middleware
 │   │   ├── auth.js            # authenticate, requireAdmin, requireSuperAdmin
-│   │   ├── rateLimiter.js     # Rate limiting configurations
-│   │   └── security.js        # Security middleware (Helmet, HPP, etc.)
+│   │   ├── rateLimiter.js     # 8 rate limiter configurations
+│   │   └── security.js        # Helmet CSP, HPP, IP blacklist, pattern detection
 │   ├── data/                 # XML data storage
-│   │   ├── users.xml
+│   │   ├── users.xml          # ✅ Tracked in Git (accounts persist on deploy)
 │   │   ├── tasks.xml
 │   │   ├── messages.xml
 │   │   ├── payments.xml
@@ -154,7 +164,7 @@ MonkiHub/
 │   ├── index.html            # Main app interface
 │   ├── landing.html          # Landing/recruitment page
 │   ├── css/
-│   │   ├── style.css          # Main app styles
+│   │   ├── style.css          # Main app styles + password strength styles
 │   │   └── landing.css        # Landing page styles
 │   ├── js/
 │   │   ├── app.js             # Main app logic
@@ -233,7 +243,11 @@ SERVER_URL=http://localhost:3000
 
 ## 🚀 Deployment
 
-> ⚠️ **Important**: XML data files are now excluded from Git to ensure **data persists between deployments**. See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
+### Data Persistence on Render
+
+- `users.xml` is **tracked in Git** — user accounts persist across deploys
+- `tasks.xml`, `messages.xml`, `payments.xml`, `logs.xml` are excluded from Git and reset on each deploy
+- To persist all data, use Render's **persistent disk** (paid feature)
 
 ### Deploy to Render (Free)
 
@@ -312,22 +326,29 @@ This demonstrates the **producer-consumer pattern** used in real-world systems l
 |---|---|---|---|
 | POST | /api/auth/login | No | Login, returns JWT |
 | POST | /api/auth/register | No | Register new user |
-| GET | /api/auth/users | Admin | List all users |
+| GET | /api/auth/list | Yes | List users (all authenticated) |
+| GET | /api/auth/users | Admin | List all users with full details |
 | POST | /api/auth/create-admin | Super Admin | Create new admin user |
 | DELETE | /api/auth/users/:username | Admin | Delete user |
+| GET | /api/auth/profile | Yes | Get own profile |
+| PUT | /api/auth/profile | Yes | Update profile / change password |
 
 ### Tasks
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | GET | /api/tasks | Yes | Get tasks (filtered by role) |
 | POST | /api/tasks | Admin | Create task |
-| PUT | /api/tasks/:id | Admin | Update task |
+| PUT | /api/tasks/:id | Admin | Update task / set due date |
 | DELETE | /api/tasks/:id | Admin | Delete task |
+| POST | /api/tasks/:id/submit | Yes | Submit proof of work |
+| POST | /api/tasks/:id/approve | Admin | Approve task |
+| POST | /api/tasks/:id/reject | Admin | Reject task with reason |
 
 ### Messages
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | GET | /api/messages | Yes | Get messages |
+| GET | /api/messages/conversation/:user | Yes | Get conversation with a user |
 | POST | /api/messages | Yes | Publish message to Kafka |
 
 ### Payments
@@ -443,7 +464,7 @@ node resetAdminPassword.js
 - **socket.io-client** - Consumer connects back to server
 - **express-rate-limit** - Rate limiting middleware
 - **express-slow-down** - Gradual speed limiting
-- **helmet** - Security headers
+- **helmet** - Security headers (CSP, HSTS, XSS)
 - **hpp** - HTTP Parameter Pollution protection
 
 ### Frontend
@@ -554,12 +575,12 @@ node resetAdminPassword.js
 │  │              XML Data Storage                    │ │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐      │ │
 │  │  │users.xml │  │tasks.xml │  │messages  │      │ │
-│  │  └──────────┘  └──────────┘  │  .xml    │      │ │
-│  │  ┌──────────┐  ┌──────────┐  └──────────┘      │ │
-│  │  │payments  │  │ logs.xml │  ┌──────────┐      │ │
-│  │  │  .xml    │  └──────────┘  │archive   │      │ │
-│  │  └──────────┘                │  .xml    │      │ │
-│  │                              └──────────┘      │ │
+│  │  │(in Git)  │  │          │  │  .xml    │      │ │
+│  │  └──────────┘  └──────────┘  └──────────┘      │ │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐      │ │
+│  │  │payments  │  │ logs.xml │  │archive   │      │ │
+│  │  │  .xml    │  └──────────┘  │  .xml    │      │ │
+│  │  └──────────┘                └──────────┘      │ │
 │  └──────────────────────────────────────────────────┘ │
 │  ┌──────────────────────────────────────────────────┐ │
 │  │           XSLT Transformations                   │ │
