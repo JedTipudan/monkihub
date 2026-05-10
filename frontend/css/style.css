@@ -691,7 +691,7 @@ body:not(.dark) .script-log { background: #1e2030; }
 
 @media print {
   body { background: #fff; color: #000; }
-  button { display: none !important; }
+  button { display: none !importantrtant; }
 }
 
 /* ── User Management Section ── */

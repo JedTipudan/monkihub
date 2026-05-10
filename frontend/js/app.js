@@ -2439,3 +2439,101 @@ function validatePasswordStrength(password) {
   const metCount = Object.values(requirements).filter(Boolean).length;
   return metCount >= 3; // At least fair password
 }
+
+// ── Utility Functions ─────────────────────────────────────────────────────────
+
+/**
+ * Escape HTML to prevent XSS attacks
+ * Converts special characters to HTML entities
+ */
+function escHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * Skeleton loading rows for dashboard
+ */
+function skeletonRows(count) {
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    html += '<div class="skel-row">' +
+      '<span class="skel skel-icon"></span>' +
+      '<span class="skel skel-line"></span>' +
+      '<span class="skel skel-short"></span>' +
+    '</div>';
+  }
+  return html;
+}
+
+/**
+ * Skeleton loading cards for kanban
+ */
+function skeletonCards(count) {
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    html += '<div class="skel-card">' +
+      '<span class="skel skel-title"></span>' +
+      '<span class="skel skel-line"></span>' +
+    '</div>';
+  }
+  return html;
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  
+  setTimeout(() => toast.remove(), 3000);
+}
+
+/**
+ * Confirmation modal
+ */
+async function confirmModal(message, confirmText = 'Confirm') {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box">
+        <div class="modal-icon">⚠️</div>
+        <div class="modal-msg">${escHtml(message)}</div>
+        <div class="modal-actions">
+          <button class="modal-cancel" id="modal-cancel-btn">Cancel</button>
+          <button class="modal-confirm" id="modal-confirm-btn">${escHtml(confirmText)}</button>
+        </div>
+      </div>`;
+    
+    document.body.appendChild(overlay);
+    
+    document.getElementById('modal-cancel-btn').onclick = () => {
+      overlay.remove();
+      resolve(false);
+    };
+    
+    document.getElementById('modal-confirm-btn').onclick = () => {
+      overlay.remove();
+      resolve(true);
+    };
+    
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+        resolve(false);
+      }
+    };
+  });
+}

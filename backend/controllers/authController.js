@@ -3,7 +3,12 @@ const UserModel = require('../models/UserModel');
 const LogModel = require('../models/LogModel');
 const { trackFailedAttempt } = require('../middleware/security');
 
-const SECRET = process.env.JWT_SECRET || 'monkihub_secret_2025'; // TODO: set JWT_SECRET env var in production
+const SECRET = process.env.JWT_SECRET || 'monkihub_secret_2025';
+
+// Warn if using default secret in production
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  console.warn('⚠️  WARNING: Using default JWT_SECRET in production! Set JWT_SECRET environment variable.');
+}
 
 const AuthController = {
   async login(req, res) {
