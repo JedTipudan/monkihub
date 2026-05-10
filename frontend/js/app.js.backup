@@ -1613,6 +1613,24 @@ async function submitFabTask() {
     showToast('Task created!', 'success');
   } catch (err) { showToast(err.message, 'error'); }
 }
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box">
+        <div class="modal-icon">⚠️</div>
+        <div class="modal-msg">${escHtml(message)}</div>
+        <div class="modal-actions">
+          <button class="modal-cancel">Cancel</button>
+          <button class="modal-confirm">${escHtml(confirmLabel)}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.modal-cancel').onclick = () => { overlay.remove(); resolve(false); };
+    overlay.querySelector('.modal-confirm').onclick = () => { overlay.remove(); resolve(true); };
+    overlay.onclick = e => { if (e.target === overlay) { overlay.remove(); resolve(false); } };
+  });
+}
+
 
 // -- Profile --
 let pendingAvatar = null;
