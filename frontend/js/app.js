@@ -224,7 +224,11 @@ function initSocket() {
 
   socket.on('task:assigned', (task) => {
     if (task.assignee !== currentUser.username) return;
-    pushNotification({ type: 'task', title: '📋 New Task Assigned!', body: `"${task.title}" — ${task.priority} priority${task.dueDate ? ' · Due ' + formatDueDate(task.dueDate) : ''}` });
+    if (!allTasks.find(t => t.id === task.id)) allTasks.push(task);
+    const duePart = task.dueDate && typeof formatDueDate === 'function' ? ' · Due ' + formatDueDate(task.dueDate) : '';
+    pushNotification({ type: 'task', title: '📋 New Task Assigned!', body: '"' + task.title + '" — ' + task.priority + ' priority' + duePart, sender: null });
+    if (document.getElementById('panel-tasks').classList.contains('active')) renderTasks();
+    if (document.getElementById('panel-dashboard').classList.contains('active')) loadDashboard();
   });
 
   socket.on('task:updated', (task) => {
