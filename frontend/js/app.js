@@ -219,8 +219,12 @@ function initSocket() {
   socket.on('task:new', (task) => {
     allTasks.push(task);
     if (document.getElementById('panel-tasks').classList.contains('active')) renderTasks();
-    pushNotification({ type: 'task', title: 'New Task', body: `"${task.title}" assigned to @${task.assignee}` });
     if (document.getElementById('panel-dashboard').classList.contains('active')) loadDashboard();
+  });
+
+  socket.on('task:assigned', (task) => {
+    if (task.assignee !== currentUser.username) return;
+    pushNotification({ type: 'task', title: '📋 New Task Assigned!', body: `"${task.title}" — ${task.priority} priority${task.dueDate ? ' · Due ' + formatDueDate(task.dueDate) : ''}` });
   });
 
   socket.on('task:updated', (task) => {

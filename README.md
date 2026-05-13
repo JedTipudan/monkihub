@@ -54,6 +54,13 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - Unread message tracking per user
 - Mobile-friendly notification banners
 
+### 🔔 Task Assignment Notifications
+- Assigned user receives an **instant bell notification + banner** when admin creates a task for them
+- Notification is **targeted** — only the assignee is notified (not all users)
+- Shows task title, priority, and due date (if set) in the notification
+- Uses Socket.IO room targeting (`user:<username>`) for precise delivery
+- Admins do **not** receive noisy broadcast notifications on task creation
+
 ### 📋 Task Management
 - Kanban board (To Do, In Progress, Pending Review)
 - Task assignment with reference image upload
@@ -435,7 +442,7 @@ This demonstrates the **producer-consumer pattern** used in real-world systems l
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | GET | /api/tasks | Yes | Get tasks (filtered by role) |
-| POST | /api/tasks | Admin | Create task |
+| POST | /api/tasks | Admin | Create task (notifies assignee via Socket.IO) |
 | PUT | /api/tasks/:id | Admin | Update task / set due date |
 | DELETE | /api/tasks/:id | Admin | Delete task |
 | POST | /api/tasks/:id/submit | Yes | Submit proof of work |

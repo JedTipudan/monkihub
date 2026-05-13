@@ -18,6 +18,7 @@ const TaskController = {
       const task = await TaskModel.create({ ...req.body, createdBy: req.user.username });
       await LogModel.create({ action: 'TASK_CREATED', actor: req.user.username, detail: `Task '${task.title}' created` });
       req.io.emit('task:new', task);
+      req.io.to(`user:${task.assignee}`).emit('task:assigned', task);
       res.status(201).json(task);
     } catch (err) {
       res.status(400).json({ error: err.message });
