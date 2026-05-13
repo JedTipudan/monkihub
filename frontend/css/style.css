@@ -1679,3 +1679,17 @@ body:not(.dark) .script-log { background: #1e2030; }
   color: var(--danger);
   border: 1px solid rgba(248,113,113,0.3);
 }
+
+/* XSLT Enhanced Styles */
+.xslt-summary {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  padding: 10px 14px; background: var(--surface2);
+  border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem;
+}
+.xslt-summary span { color: var(--text-muted); }
+.xslt-summary strong { color: var(--text); }
+.xslt-table .row-done td { border-left: 3px solid var(--success); }
+.xslt-table .row-review td { border-left: 3px solid var(--warning); }
+.xslt-table .row-inprogress td { border-left: 3px solid var(--accent); }
+.xslt-table .row-todo td { border-left: 3px solid var(--text-muted); }
+.xslt-table .row-even { background: var(--surface2); }
