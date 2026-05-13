@@ -1,15 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MonkiHub â€” Team Collaboration Platform</title>
+  <title>MonkiHub &mdash; Team Collaboration Platform</title>
   <link rel="icon" href="assets/logo.png" type="image/png"/>
   <link rel="stylesheet" href="css/style.css?v=2"/>
 </head>
 <body>
 
-<!-- â”€â”€ Auth Screen â”€â”€ -->
+<!-- Auth Screen -->
 <div id="auth-screen">
   <div class="auth-card">
     <img src="assets/logo.png" alt="MonkiHub Logo" class="logo"/>
@@ -48,17 +48,17 @@
         <label>Password</label>
         <div class="password-input-wrapper">
           <input type="password" id="reg-password" placeholder="Choose a password" oninput="checkPasswordStrength('reg-password', 'reg-strength')" autocomplete="new-password"/>
-          <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password', this)">ðŸ‘ï¸</button>
+          <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password', this)">&#128065;&#65039;</button>
         </div>
         <div class="password-strength" id="reg-strength" style="display:none">
           <div class="strength-bar"><div class="strength-fill"></div></div>
           <div class="strength-text"></div>
           <div class="strength-requirements">
-            <div class="req-item" data-req="length">âœ— At least 8 characters</div>
-            <div class="req-item" data-req="uppercase">âœ— One uppercase letter</div>
-            <div class="req-item" data-req="lowercase">âœ— One lowercase letter</div>
-            <div class="req-item" data-req="number">âœ— One number</div>
-            <div class="req-item" data-req="special">âœ— One special character (!@#$%^&*)</div>
+            <div class="req-item" data-req="length">&#10007; At least 8 characters</div>
+            <div class="req-item" data-req="uppercase">&#10007; One uppercase letter</div>
+            <div class="req-item" data-req="lowercase">&#10007; One lowercase letter</div>
+            <div class="req-item" data-req="number">&#10007; One number</div>
+            <div class="req-item" data-req="special">&#10007; One special character (!@#$%^&amp;*)</div>
           </div>
         </div>
       </div>
@@ -66,7 +66,7 @@
         <label>Confirm Password</label>
         <div class="password-input-wrapper">
           <input type="password" id="reg-password-confirm" placeholder="Re-enter your password" oninput="checkPasswordMatch('reg-password', 'reg-password-confirm')" autocomplete="new-password"/>
-          <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password-confirm', this)">ðŸ‘ï¸</button>
+          <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password-confirm', this)">&#128065;&#65039;</button>
         </div>
         <div class="password-match-msg" id="reg-match-msg"></div>
       </div>
@@ -75,7 +75,7 @@
   </div>
 </div>
 
-<!-- â”€â”€ Main App â”€â”€ -->
+<!-- Main App -->
 <div id="app">
 
   <!-- Topbar -->
@@ -95,7 +95,7 @@
       <!-- Notification Bell -->
       <div class="notif-bell-wrap">
         <button class="bell-btn" onclick="toggleNotifDropdown()" title="Notifications">
-          ðŸ””
+          &#128276;
           <span class="bell-badge" id="bell-badge" style="display:none">0</span>
         </button>
         <div class="notif-dropdown" id="notif-dropdown">
@@ -119,15 +119,15 @@
       <div class="nav-section">
         <div class="nav-label">Workspace</div>
         <button class="nav-item" data-panel="dashboard" onclick="navigateTo('dashboard')">
-          <span class="icon">ðŸ </span> Dashboard
+          <span class="icon">&#127968;</span> Dashboard
         </button>
         <button class="nav-item" data-panel="tasks" onclick="navigateTo('tasks')">
-          <span class="icon">âœ…</span> Tasks
+          <span class="icon">&#9989;</span> Tasks
         </button>
         <button class="nav-item" data-panel="chat" onclick="navigateTo('chat')">
-          <span class="icon">ðŸ’¬</span> <span class="nav-label-text">Chat</span>
+          <span class="icon">&#128172;</span> <span class="nav-label-text">Chat</span>
         </button>
-      <button class="nav-item" data-panel="payroll" onclick="navigateTo('payroll')">
+        <button class="nav-item" data-panel="payroll" onclick="navigateTo('payroll')">
           <span class="icon">&#128181;</span> <span class="nav-label-text">Payroll</span>
         </button>
         <button class="nav-item" data-panel="calendar" onclick="navigateTo('calendar')">
@@ -146,10 +146,10 @@
           <span class="icon">&#10133;</span> Create Admin
         </button>
         <button class="nav-item admin-only" data-panel="scripts" onclick="navigateTo('scripts')">
-          <span class="icon">âš™ï¸</span> Scripts
+          <span class="icon">&#9881;&#65039;</span> Scripts
         </button>
         <button class="nav-item" data-panel="xml" onclick="navigateTo('xml')">
-          <span class="icon">ðŸ—‚ï¸</span> XML Viewer
+          <span class="icon">&#128194;</span> XML Viewer
         </button>
       </div>
       <div class="sidebar-footer">
@@ -157,91 +157,91 @@
           <div class="status-dot" id="broker-dot"></div>
           <span id="broker-label">Connecting...</span>
         </div>
-        <button class="btn-logout-sidebar" onclick="logout()">âŽ‹ Logout</button>
+        <button class="btn-logout-sidebar" onclick="logout()">&#x23CF; Logout</button>
       </div>
     </div>
 
-    <!-- â”€â”€ Dashboard Panel â”€â”€ -->
+    <!-- Dashboard Panel -->
     <div class="panel" id="panel-dashboard">
       <div class="panel-header">
         <div>
-          <h3>ðŸ  Dashboard</h3>
+          <h3>&#127968; Dashboard</h3>
           <p>Overview of your workspace</p>
         </div>
-        <button class="btn-sm" onclick="loadDashboard()">â†» Refresh</button>
+        <button class="btn-sm" onclick="loadDashboard()">&#8635; Refresh</button>
       </div>
       <div class="dashboard-body">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-icon">âœ…</div>
+            <div class="stat-icon">&#9989;</div>
             <div class="stat-info">
-              <div class="value" id="stat-tasks">â€”</div>
+              <div class="value" id="stat-tasks">&mdash;</div>
               <div class="label">Total Tasks</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">ðŸ’¬</div>
+            <div class="stat-icon">&#128172;</div>
             <div class="stat-info">
-              <div class="value" id="stat-messages">â€”</div>
+              <div class="value" id="stat-messages">&mdash;</div>
               <div class="label">Messages</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">ðŸ“Œ</div>
+            <div class="stat-icon">&#128205;</div>
             <div class="stat-info">
-              <div class="value" id="stat-todo">â€”</div>
+              <div class="value" id="stat-todo">&mdash;</div>
               <div class="label">To Do</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">âš¡</div>
+            <div class="stat-icon">&#9889;</div>
             <div class="stat-info">
-              <div class="value" id="stat-inprogress">â€”</div>
+              <div class="value" id="stat-inprogress">&mdash;</div>
               <div class="label">In Progress</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">ðŸŽ¯</div>
+            <div class="stat-icon">&#127919;</div>
             <div class="stat-info">
-              <div class="value" id="stat-done">â€”</div>
+              <div class="value" id="stat-done">&mdash;</div>
               <div class="label">Completed</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">ðŸ‘¥</div>
+            <div class="stat-icon">&#128101;</div>
             <div class="stat-info">
-              <div class="value" id="stat-users">â€”</div>
+              <div class="value" id="stat-users">&mdash;</div>
               <div class="label">Team Members</div>
             </div>
           </div>
         </div>
         <div class="dashboard-grid">
           <div class="dash-card">
-            <h4>ðŸŸ¡ Activity Feed</h4>
+            <h4>&#128993; Activity Feed</h4>
             <div id="activity-feed"><div class="loading">Loading...</div></div>
           </div>
           <div class="dash-card">
-            <h4>ðŸ“‹ Recent Tasks</h4>
+            <h4>&#128203; Recent Tasks</h4>
             <div id="recent-tasks"><div class="loading">Loading...</div></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- â”€â”€ Tasks Panel â”€â”€ -->
+    <!-- Tasks Panel -->
     <div class="panel" id="panel-tasks">
       <div class="panel-header">
         <div>
-          <h3>âœ… Task Board</h3>
+          <h3>&#9989; Task Board</h3>
           <p>Manage and track team tasks</p>
         </div>
-        <button class="btn-sm" onclick="loadTasks()">â†» Refresh</button>
+        <button class="btn-sm" onclick="loadTasks()">&#8635; Refresh</button>
       </div>
       <div class="tasks-body">
 
         <!-- Create Task Form (Admin Only) -->
         <div class="task-form-card admin-only">
-          <h4>âž• Create New Task</h4>
+          <h4>&#10133; Create New Task</h4>
           <div class="task-form">
             <div class="form-group full">
               <label>Title</label>
@@ -270,13 +270,13 @@
             <div class="form-group full">
               <label>Task Reference Image (optional)</label>
               <div class="task-img-upload-area" id="task-img-upload-area">
-                <span class="task-img-upload-icon">ðŸ–¼ï¸</span>
+                <span class="task-img-upload-icon">&#128247;</span>
                 <span class="task-img-upload-text">Click to upload a reference image</span>
                 <input type="file" id="task-img-input" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer" onchange="handleTaskImageUpload(event)"/>
               </div>
               <div id="task-img-preview" style="display:none;margin-top:8px;position:relative">
                 <img id="task-img-preview-img" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>
-                <button onclick="clearTaskImage()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);border:none;color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:12px">âœ•</button>
+                <button onclick="clearTaskImage()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);border:none;color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:12px">&#10005;</button>
               </div>
             </div>
             <div class="form-group" style="display:flex;align-items:flex-end">
@@ -288,7 +288,7 @@
         <!-- Floating Action Button (mobile, admin only) -->
         <button class="fab-create-task admin-only" onclick="openFabTaskModal()" title="Assign Task">+</button>
 
-        <!-- Kanban Board (todo, in-progress, pending-review) -->
+        <!-- Kanban Board -->
         <div class="kanban kanban-4col">
           <div class="kanban-col">
             <div class="kanban-col-header">
@@ -316,10 +316,10 @@
       </div>
     </div>
 
-    <!-- â”€â”€ Chat Panel â”€â”€ -->
+    <!-- Chat Panel -->
     <div class="panel" id="panel-chat">
       <div class="chat-sidebar">
-        <div class="chat-sidebar-header">ðŸ’¬ Direct Messages</div>
+        <div class="chat-sidebar-header">&#128172; Direct Messages</div>
         <div class="room-list" id="room-list"><div class="loading">Loading users...</div></div>
       </div>
       <div class="chat-main">
@@ -327,16 +327,15 @@
           <h4 id="chat-room-name">Select a user to chat</h4>
           <span id="chat-room-sub">Direct Message</span>
         </div>
-        <div class="chat-messages" id="chat-messages"><div class="empty-state"><div class="emoji">ðŸ’¬</div><p>Select a user from the left to start chatting</p></div></div>
+        <div class="chat-messages" id="chat-messages"><div class="empty-state"><div class="emoji">&#128172;</div><p>Select a user from the left to start chatting</p></div></div>
         <div class="chat-input-area">
           <input type="text" id="chat-input" placeholder="Type a message... (Enter to send)" disabled/>
-          <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>Send âž¤</button>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>Send &#10148;</button>
         </div>
       </div>
     </div>
 
-    <!-- â”€â”€ Approval History Panel (Admin Only) â”€â”€ -->
-        <!-- Payroll Panel -->
+    <!-- Payroll Panel -->
     <div class="panel" id="panel-payroll">
       <div class="panel-header">
         <div>
@@ -350,6 +349,7 @@
       </div>
     </div>
 
+    <!-- Approval History Panel -->
     <div class="panel" id="panel-history">
       <div class="panel-header">
         <div>
@@ -363,14 +363,14 @@
       </div>
     </div>
 
-    <!-- â”€â”€ Logs Panel â”€â”€ -->
+    <!-- Logs Panel -->
     <div class="panel" id="panel-logs">
       <div class="panel-header">
         <div>
-          <h3>ðŸ“‹ Activity Logs</h3>
+          <h3>&#128203; Activity Logs</h3>
           <p>System-wide activity tracking</p>
         </div>
-        <button class="btn-sm" onclick="loadLogs()">â†» Refresh</button>
+        <button class="btn-sm" onclick="loadLogs()">&#8635; Refresh</button>
       </div>
       <div class="logs-body">
         <table class="log-table">
@@ -384,11 +384,11 @@
       </div>
     </div>
 
-    <!-- â”€â”€ XML Viewer Panel â”€â”€ -->
+    <!-- XML Viewer Panel -->
     <div class="panel" id="panel-xml">
       <div class="panel-header">
         <div>
-          <h3>ðŸ—‚ï¸ XML Data Viewer</h3>
+          <h3>&#128194; XML Data Viewer</h3>
           <p>View raw XML and XSLT-transformed output</p>
         </div>
         <div class="xml-view-toggle">
@@ -398,9 +398,9 @@
       </div>
       <div class="xml-body">
         <div class="xml-tabs">
-          <button class="xml-tab active" data-file="messages" onclick="loadXmlPanel('messages',null)">ðŸ“¨ Messages</button>
-          <button class="xml-tab" data-file="tasks" onclick="loadXmlPanel('tasks',null)">âœ… Tasks</button>
-          <button class="xml-tab" data-file="logs" onclick="loadXmlPanel('logs',null)">ðŸ“‹ Logs</button>
+          <button class="xml-tab active" data-file="messages" onclick="loadXmlPanel('messages',null)">&#128232; Messages</button>
+          <button class="xml-tab" data-file="tasks" onclick="loadXmlPanel('tasks',null)">&#9989; Tasks</button>
+          <button class="xml-tab" data-file="logs" onclick="loadXmlPanel('logs',null)">&#128203; Logs</button>
         </div>
         <div class="xml-content-area" id="xml-content">
           <div class="loading">Select a file to view</div>
@@ -408,21 +408,21 @@
       </div>
     </div>
 
-    <!-- â”€â”€ Scripts Panel (Admin Only) â”€â”€ -->
+    <!-- Scripts Panel -->
     <div class="panel" id="panel-scripts">
       <div class="panel-header">
         <div>
-          <h3>âš™ï¸ Background Scripts</h3>
+          <h3>&#9881;&#65039; Background Scripts</h3>
           <p>Start, stop and monitor background automation scripts</p>
         </div>
-        <button class="btn-sm" onclick="loadScripts()">â†» Refresh</button>
+        <button class="btn-sm" onclick="loadScripts()">&#8635; Refresh</button>
       </div>
       <div class="scripts-body" id="scripts-body">
         <div class="loading">Loading scripts...</div>
       </div>
     </div>
 
-    <!-- â”€â”€ Calendar Panel â”€â”€ -->
+    <!-- Calendar Panel -->
     <div class="panel" id="panel-calendar">
       <div class="panel-header">
         <div>
@@ -444,7 +444,7 @@
             <button class="btn-cal-today" onclick="calGoToday()">Today</button>
             <button class="btn-cal-nav" onclick="calNextMonth()">Next &#8594;</button>
           </div>
-          <div class="calendar-nav-title" id="cal-month-title">â€”</div>
+          <div class="calendar-nav-title" id="cal-month-title">&mdash;</div>
         </div>
         <div class="calendar-grid" id="calendar-grid">
           <div class="loading" style="grid-column:1/-1;padding:40px">Loading...</div>
@@ -488,17 +488,17 @@
       <label>Change Password (optional)</label>
       <div class="password-input-wrapper">
         <input type="password" id="profile-new-password" placeholder="Leave blank to keep current password" oninput="checkPasswordStrength('profile-new-password', 'profile-strength')" autocomplete="new-password"/>
-        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('profile-new-password', this)">ðŸ‘ï¸</button>
+        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('profile-new-password', this)">&#128065;&#65039;</button>
       </div>
       <div class="password-strength" id="profile-strength" style="display:none">
         <div class="strength-bar"><div class="strength-fill"></div></div>
         <div class="strength-text"></div>
         <div class="strength-requirements">
-          <div class="req-item" data-req="length">âœ— At least 8 characters</div>
-          <div class="req-item" data-req="uppercase">âœ— One uppercase letter</div>
-          <div class="req-item" data-req="lowercase">âœ— One lowercase letter</div>
-          <div class="req-item" data-req="number">âœ— One number</div>
-          <div class="req-item" data-req="special">âœ— One special character (!@#$%^&*)</div>
+          <div class="req-item" data-req="length">&#10007; At least 8 characters</div>
+          <div class="req-item" data-req="uppercase">&#10007; One uppercase letter</div>
+          <div class="req-item" data-req="lowercase">&#10007; One lowercase letter</div>
+          <div class="req-item" data-req="number">&#10007; One number</div>
+          <div class="req-item" data-req="special">&#10007; One special character (!@#$%^&amp;*)</div>
         </div>
       </div>
     </div>
@@ -506,7 +506,7 @@
       <label>Confirm New Password</label>
       <div class="password-input-wrapper">
         <input type="password" id="profile-password-confirm" placeholder="Re-enter your new password" oninput="checkPasswordMatch('profile-new-password', 'profile-password-confirm')" autocomplete="new-password"/>
-        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('profile-password-confirm', this)">ðŸ‘ï¸</button>
+        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('profile-password-confirm', this)">&#128065;&#65039;</button>
       </div>
       <div class="password-match-msg" id="profile-match-msg"></div>
     </div>
