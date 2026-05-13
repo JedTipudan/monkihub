@@ -23,21 +23,19 @@ async function getRawXml(filename) {
 }
 
 async function transformXslt(xmlFile, xsltFile) {
-  try {
-    const SaxonJS = require('saxon-js');
-    const xmlContent = await fs.readFile(path.join(DATA_DIR, xmlFile), 'utf8');
-    const xsltContent = await fs.readFile(path.join(XSLT_DIR, xsltFile), 'utf8');
-
-    const result = SaxonJS.transform({
-      stylesheetText: xsltContent,
-      sourceText: xmlContent,
-      destination: 'serialized'
-    }, 'sync');
-    return result.principalResult || buildFallbackHtml(xmlContent, xmlFile);
-  } catch {
-    const xmlContent = await fs.readFile(path.join(DATA_DIR, xmlFile), 'utf8');
-    return buildFallbackHtml(xmlContent, xmlFile);
-  }
+  const xmlPath  = path.join(DATA_DIR, xmlFile);
+  const xsltPath = path.join(XSLT_DIR, xsltFile);
+  const xslt3    = path.join(__dirname, '../node_modules/xslt3/xslt3.js');
+  return new Promise((resolve) => {
+    const { execFile } = require('child_process');
+    execFile(process.execPath, [xslt3, `-xsl:${xsltPath}`, `-s:${xmlPath}`], { timeout: 10000 }, (err, stdout) => {
+      if (err || !stdout.trim()) {
+        fs.readFile(xmlPath, 'utf8').then(xml => resolve(buildFallbackHtml(xml, xmlFile))).catch(() => resolve('<p>Error</p>'));
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
 }
 
 function buildFallbackHtml(xmlContent, xmlFile) {
