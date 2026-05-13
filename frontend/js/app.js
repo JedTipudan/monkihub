@@ -1808,9 +1808,14 @@ function applyTheme() {
 }
 
 function applyThemeSwitch(isDark) {
-  const sw = document.getElementById('theme-toggle');
-  if (!sw) return;
-  sw.classList.toggle('is-dark', isDark);
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  const sIcon = document.getElementById('sidebar-theme-icon');
+  const sLabel = document.getElementById('sidebar-theme-label');
+  if (icon) icon.textContent = isDark ? '🌙' : '☀️';
+  if (label) label.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+  if (sIcon) sIcon.textContent = isDark ? '🌙' : '☀️';
+  if (sLabel) sLabel.textContent = isDark ? 'Dark Mode' : 'Light Mode';
 }
 
 // Toggle mobile sidebar
