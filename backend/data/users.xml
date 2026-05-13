@@ -30,4 +30,12 @@
     <createdAt>2026-05-07T02:12:13.079Z</createdAt>
     <isSuperAdmin>false</isSuperAdmin>
   </user>
+  <user id="user-269bb383">
+    <username>zoe</username>
+    <password>$2a$10$13nYyLDT0dKvMa73wpYsfet/2NlP9iB5DOieKCKpVcRGyyHUinBky</password>
+    <role>admin</role>
+    <email>zoe@gmail.com</email>
+    <createdAt>2026-05-10T14:24:28.024Z</createdAt>
+    <isSuperAdmin>false</isSuperAdmin>
+  </user>
 </users>

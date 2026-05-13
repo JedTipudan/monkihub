@@ -40,7 +40,7 @@ async function startConsumer() {
   console.log('\n🐒 MonkiHub Kafka Consumer Started');
   console.log('====================================');
 
-  if (!KAFKA_BROKER || !KAFKA_USERNAME || !KAFKA_PASSWORD) {
+  if (!KAFKA_BROKER) {
     console.log('⚠️  Kafka env vars missing — running in simulation mode\n');
     runSimulation();
     return;
@@ -49,12 +49,26 @@ async function startConsumer() {
   // Connect socket first
   await connectSocket();
 
-  const kafka = new Kafka({
+  // Check if using local Kafka (no auth) or cloud Kafka (with auth)
+  const isLocalKafka = KAFKA_BROKER.includes('localhost') || KAFKA_BROKER.includes('127.0.0.1');
+  
+  const kafkaConfig = {
     clientId: 'monkihub-consumer',
     brokers: [KAFKA_BROKER],
-    ssl: true,
-    sasl: { mechanism: 'scram-sha-256', username: KAFKA_USERNAME, password: KAFKA_PASSWORD },
-  });
+  };
+
+  // Only add SSL and SASL for cloud Kafka
+  if (!isLocalKafka && KAFKA_USERNAME && KAFKA_PASSWORD) {
+    kafkaConfig.ssl = true;
+    kafkaConfig.sasl = { 
+      mechanism: 'scram-sha-256', 
+      username: KAFKA_USERNAME, 
+      password: KAFKA_PASSWORD 
+    };
+  }
+
+  const kafka = new Kafka(kafkaConfig);
+  console.log(`🔌 Connecting to ${isLocalKafka ? 'local' : 'cloud'} Kafka broker...`);
 
   const consumer = kafka.consumer({ groupId: 'monkihub-group' });
 

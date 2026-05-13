@@ -9,9 +9,11 @@ const logRoutes = require('./routes/logRoutes');
 const xmlRoutes = require('./routes/xmlRoutes');
 const scriptRoutes = require('./routes/scriptRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 const path = require('path');
 const { initXmlFiles } = require('./services/xmlService');
 const { initKafka } = require('./services/brokerService');
+const { initCloudinary } = require('./services/cloudinaryService');
 
 // ══════════════════════════════════════════════════════
 // ── Security & Rate Limiting Middleware ──
@@ -102,6 +104,7 @@ app.use('/api/logs', logRoutes);
 app.use('/api/xml', xmlRoutes);
 app.use('/api/scripts', scriptRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // ══════════════════════════════════════════════════════
 // ── Error Handler ──
@@ -184,6 +187,7 @@ io.on('connection', (socket) => {
 // ══════════════════════════════════════════════════════
 initXmlFiles().then(async () => {
   await initKafka();
+  initCloudinary(); // Initialize Cloudinary for image uploads
   const PORT = process.env.PORT || 3000;
   server.listen(PORT, () => {
     console.log(`\n${'='.repeat(60)}`);

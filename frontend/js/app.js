@@ -21,6 +21,24 @@ async function apiCall(method, path, body) {
   return data;
 }
 
+// ── Cloudinary Upload Helper ──────────────────────────────────────────────────
+/**
+ * Upload image to Cloudinary via backend API
+ * @param {string} base64Image - Base64 encoded image data
+ * @param {string} type - Upload type: 'avatar', 'task-proof', 'task-reference', 'payment-proof'
+ * @returns {Promise<string>} - Cloudinary secure URL
+ */
+async function uploadToCloudinary(base64Image, type) {
+  try {
+    const endpoint = `/upload/${type}`;
+    const response = await apiCall('POST', endpoint, { image: base64Image });
+    return response.url;
+  } catch (err) {
+    console.error('Cloudinary upload error:', err.message);
+    throw new Error(err.message || 'Failed to upload image. Check internet connection.');
+  }
+}
+
 async function login() {
   const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value;
@@ -113,11 +131,11 @@ function initApp() {
   document.getElementById('user-name').textContent = currentUser.username;
   const roleTag = document.getElementById('user-role');
   roleTag.textContent = currentUser.role;
-  roleTag.className = `role-tag ${currentUser.role === 'admin' ? 'admin' : ''}`;
+  roleTag.className = `role-tag ${currentUser.role === 'admin' || currentUser.isSuperAdmin ? 'admin' : ''}`;
 
   // Show/hide admin-only elements
   document.querySelectorAll('.admin-only').forEach(el => {
-    el.style.display = currentUser.role === 'admin' ? '' : 'none';
+    el.style.display = currentUser.role === 'admin' || currentUser.isSuperAdmin ? '' : 'none';
   });
 
   // Show Create Admin nav button only for superadmin
@@ -365,11 +383,11 @@ async function loadDashboard() {
     if (el) el.innerHTML = '<span class="skel skel-stat"></span>';
   });
   try {
-    const isAdmin = currentUser.role === 'admin';
+    const isAdmin = currentUser.role === 'admin' || currentUser.isSuperAdmin;
     const requests = [
       apiCall('GET', '/tasks'),
       apiCall('GET', '/messages'),
-      isAdmin ? apiCall('GET', '/auth/list') : Promise.resolve([])
+      apiCall('GET', '/auth/list') // All authenticated users can see team members
     ];
     const [tasks, messages, users] = await Promise.all(requests);
     allTasks = tasks; allMessages = messages;
@@ -378,7 +396,7 @@ async function loadDashboard() {
     document.getElementById('stat-messages').textContent = messages.length;
     document.getElementById('stat-todo').textContent = tasks.filter(t => t.status === 'todo').length;
     document.getElementById('stat-done').textContent = tasks.filter(t => t.status === 'done').length;
-    if (isAdmin) document.getElementById('stat-users').textContent = users.length;
+    document.getElementById('stat-users').textContent = users.length;
     document.getElementById('stat-inprogress').textContent = tasks.filter(t => t.status === 'in-progress').length;
 
     // Activity feed - merge tasks + messages, sort by time, show latest 8
@@ -427,7 +445,7 @@ async function loadTasks() {
 }
 
 function renderTasks() {
-  const isAdmin = currentUser.role === 'admin';
+  const isAdmin = currentUser.role === 'admin' || currentUser.isSuperAdmin;
   const cols = { todo: [], 'in-progress': [], 'pending-review': [], done: [] };
   allTasks.forEach(function(t) { if (cols[t.status]) cols[t.status].push(t); });
 
@@ -553,7 +571,17 @@ function handleProofFile(e) {
 async function submitProof(taskId) {
   if (!pendingProof) return;
   try {
-    const updated = await apiCall('POST', '/tasks/' + taskId + '/submit', { proof: pendingProof, proofName: pendingProofName });
+    let proofUrl = pendingProof;
+    let proofFileName = pendingProofName;
+    
+    // Upload image to Cloudinary if it's a base64 image
+    if (pendingProof.startsWith('data:image/')) {
+      showToast('Uploading proof...', 'info');
+      proofUrl = await uploadToCloudinary(pendingProof, 'task-proof');
+      proofFileName = 'proof.jpg'; // Cloudinary handles the actual filename
+    }
+    
+    const updated = await apiCall('POST', '/tasks/' + taskId + '/submit', { proof: proofUrl, proofName: proofFileName });
     const modal = document.getElementById('submit-modal');
     if (modal) modal.remove();
     pendingProof = null; pendingProofName = '';
@@ -1350,7 +1378,7 @@ async function deleteUser(username) {
 // ── Utilities ─────────────────────────────────────────────────────────────────
 // -- Payroll Panel --
 async function loadPayroll() {
-  if (currentUser.role === 'admin') {
+  if (currentUser.role === 'admin' || currentUser.isSuperAdmin) {
     await loadAdminPayroll();
   } else {
     await loadUserPayroll();
@@ -1473,7 +1501,15 @@ function handlePayProof(e) {
 
 async function confirmPay(payId) {
   try {
-    await apiCall('POST', '/payments/' + payId + '/pay', { proofOfPayment: pendingPayProof || '' });
+    let proofUrl = pendingPayProof || '';
+    
+    // Upload payment proof to Cloudinary if it's a base64 image
+    if (pendingPayProof && pendingPayProof.startsWith('data:image/')) {
+      showToast('Uploading payment proof...', 'info');
+      proofUrl = await uploadToCloudinary(pendingPayProof, 'payment-proof');
+    }
+    
+    await apiCall('POST', '/payments/' + payId + '/pay', { proofOfPayment: proofUrl });
     pendingPayProof = null;
     const modal = document.getElementById('pay-modal');
     if (modal) modal.remove();
@@ -1695,7 +1731,26 @@ async function saveProfile() {
     body.password = newPassword;
   }
   
-  if (pendingAvatar !== null) body.avatar = pendingAvatar;
+  // Upload avatar to Cloudinary if changed
+  if (pendingAvatar !== null) {
+    try {
+      if (pendingAvatar === '') {
+        // User removed avatar
+        body.avatar = '';
+      } else if (pendingAvatar.startsWith('data:image/')) {
+        // Upload new avatar to Cloudinary
+        showToast('Uploading avatar...', 'info');
+        const cloudinaryUrl = await uploadToCloudinary(pendingAvatar, 'avatar');
+        body.avatar = cloudinaryUrl;
+      } else {
+        // Keep existing avatar URL
+        body.avatar = pendingAvatar;
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+      return;
+    }
+  }
   
   try {
     const updated = await apiCall('PUT', '/auth/profile', body);
@@ -1843,7 +1898,7 @@ function renderDueBadge(task) {
   if (!task.dueDate) return '';
   const cls   = getDueClass(task.dueDate, task.status);
   const label = dueDateLabel(task.dueDate, task.status);
-  const editBtn = (currentUser && currentUser.role === 'admin' && task.status !== 'done')
+  const editBtn = (currentUser && (currentUser.role === 'admin' || currentUser.isSuperAdmin) && task.status !== 'done')
     ? '<button class="btn-edit-due" onclick="openEditDueModal(\'' + task.id + '\',\'' + escHtml(task.dueDate) + '\',event)" title="Edit due date">✏</button>'
     : '';
   return '<div style="display:flex;align-items:center;gap:2px">' +
@@ -1858,7 +1913,7 @@ function renderDueBadge(task) {
 // Override renderTasks to include due date badges
 // (replaces the original defined earlier in app.js)
 window.renderTasks = function renderTasks() {
-  var isAdmin = currentUser.role === 'admin';
+  var isAdmin = currentUser.role === 'admin' || currentUser.isSuperAdmin;
   var cols = { todo: [], 'in-progress': [], 'pending-review': [], done: [] };
   allTasks.forEach(function(t) { if (cols[t.status]) cols[t.status].push(t); });
 
@@ -1935,10 +1990,18 @@ window.createTask = async function createTask() {
   var dueDate     = document.getElementById('task-due-date') ? document.getElementById('task-due-date').value : '';
   if (!title || !assignee) return showToast('Title and assignee are required', 'error');
   try {
+    let taskImageUrl = pendingTaskImage || '';
+    
+    // Upload task reference image to Cloudinary if it's a base64 image
+    if (pendingTaskImage && pendingTaskImage.startsWith('data:image/')) {
+      showToast('Uploading reference image...', 'info');
+      taskImageUrl = await uploadToCloudinary(pendingTaskImage, 'task-reference');
+    }
+    
     await apiCall('POST', '/tasks', {
       title, description, assignee, priority,
       status: 'todo',
-      taskImage: pendingTaskImage || '',
+      taskImage: taskImageUrl,
       dueDate: dueDate || ''
     });
     document.getElementById('task-title').value = '';
@@ -2136,7 +2199,7 @@ function showCalTaskPopup(taskId, event) {
   popup.className = 'cal-popup';
   popup.id = 'cal-popup';
 
-  var editBtn = (currentUser && currentUser.role === 'admin' && task.status !== 'done')
+  var editBtn = (currentUser && (currentUser.role === 'admin' || currentUser.isSuperAdmin) && task.status !== 'done')
     ? '<button class="btn-sm" style="width:100%;margin-top:10px;font-size:0.75rem" onclick="openEditDueModal(\'' + task.id + '\',\'' + escHtml(task.dueDate || '') + '\',event)">&#128197; Edit Due Date</button>'
     : '';
 

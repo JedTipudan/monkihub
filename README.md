@@ -1,8 +1,32 @@
 # 🐒 MonkiHub
 
-A full-stack team collaboration and task management platform built with Node.js (Express), vanilla HTML/CSS/JS, XML data storage, Socket.IO for real-time messaging, and **Apache Kafka (Redpanda)** as the message broker.
+A full-stack team collaboration and task management platform built with Node.js (Express), vanilla HTML/CSS/JS, XML data storage, Socket.IO for real-time messaging, and **Apache Kafka** as the message broker.
 
 **🌐 Live Demo**: [Your Render URL Here]
+
+---
+
+## 🚀 Quick Start (3 Commands!)
+
+**Run MonkiHub 100% offline with local Kafka:**
+
+```bash
+# 1. Setup Kafka (one-time, ~2 min)
+setup-kafka-docker.bat
+
+# 2. Configure for localhost (one-time, 5 sec)
+configure-local-kafka.bat
+
+# 3. Start everything (daily use, 10 sec)
+start-all-offline.bat
+```
+
+**Open:** http://localhost:3000 🎉
+
+**Prerequisites:** Docker Desktop must be installed.  
+**Download:** https://www.docker.com/products/docker-desktop/
+
+**📚 See:** `CHEAT_SHEET.txt` for all commands and `KAFKA_EXPLANATION.md` for course presentation.
 
 ---
 
@@ -58,6 +82,16 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - XSLT transformations for HTML display
 - XML Viewer panel (raw + transformed views)
 - DOM parsing with xml2js
+
+### 📸 Cloud-Based Image Storage
+- **Cloudinary integration** for scalable image storage
+- Profile avatar uploads
+- Task proof-of-work image uploads
+- Task reference image uploads
+- Payment proof screenshot uploads
+- Automatic image optimization and CDN delivery
+- **Requires internet connection** for uploads
+- Secure HTTPS URLs stored in XML database
 
 ### 📱 Mobile Responsive
 - Hamburger menu navigation
@@ -182,10 +216,43 @@ MonkiHub/
 
 ### Prerequisites
 - Node.js v18+
-- Redpanda Cloud account (free) — or any Kafka-compatible broker
+- **For Cloud Deployment:** Redpanda Cloud account (free) — or any Kafka-compatible broker
+- **For Offline/Local:** Docker Desktop (free)
 - Git (for deployment)
 
-### Local Development
+### 🚀 Quick Start - Offline Mode (Recommended for Development)
+
+**Run MonkiHub 100% offline with local Kafka in 3 commands:**
+
+```bash
+# 1. Setup local Kafka (one-time, ~2 minutes)
+setup-kafka-docker.bat
+
+# 2. Configure for localhost (one-time, 5 seconds)
+configure-local-kafka.bat
+
+# 3. Start everything (daily use, 10 seconds)
+start-all-offline.bat
+```
+
+**That's it!** Open `http://localhost:3000` 🎉
+
+**What happens:**
+- Terminal 1: Backend Server (port 3000)
+- Terminal 2: Kafka Consumer (message processor)
+- Keep both windows open while using MonkiHub
+
+**Daily Usage:** Just run `start-all-offline.bat` (10 seconds)
+
+**Troubleshooting:**
+- Run `test-kafka.bat` to diagnose issues
+- Check Docker Desktop is running (whale icon in system tray)
+- See `CHEAT_SHEET.txt` for all commands
+- See `KAFKA_EXPLANATION.md` for course presentation details
+
+---
+
+### Local Development (Cloud Kafka)
 
 ```bash
 # Clone the repository
@@ -219,6 +286,28 @@ Server runs on `http://localhost:3000`
 ### Environment Variables
 
 Create `backend/.env`:
+
+**For Local Kafka (Offline):**
+```
+PORT=3000
+JWT_SECRET=your_secret_key_here
+
+# Local Kafka (Docker)
+KAFKA_BROKER=localhost:9092
+KAFKA_USERNAME=
+KAFKA_PASSWORD=
+KAFKA_TOPIC=monkihub_messages
+
+# Server URL (for consumer Socket.IO connection)
+SERVER_URL=http://localhost:3000
+
+# Cloudinary (for cloud-based image storage)
+CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+CLOUDINARY_API_KEY=your_api_key_here
+CLOUDINARY_API_SECRET=your_api_secret_here
+```
+
+**For Cloud Kafka (Production):**
 ```
 PORT=3000
 JWT_SECRET=your_secret_key_here
@@ -231,7 +320,16 @@ KAFKA_TOPIC=monkihub_messages
 
 # Server URL (for consumer Socket.IO connection)
 SERVER_URL=http://localhost:3000
+
+# Cloudinary (for cloud-based image storage)
+CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+CLOUDINARY_API_KEY=your_api_key_here
+CLOUDINARY_API_SECRET=your_api_secret_here
 ```
+
+**Note:** The code automatically detects localhost and skips SSL/SASL authentication for Kafka.
+
+**Cloudinary Setup:** See `CLOUDINARY_SETUP.md` for detailed instructions on setting up cloud-based image storage.
 
 ### Default Credentials
 
@@ -457,6 +555,8 @@ node resetAdminPassword.js
 - **Express.js** - Web framework
 - **Socket.IO** - Real-time bidirectional communication
 - **KafkaJS** - Apache Kafka client
+- **Cloudinary** - Cloud-based image storage and CDN
+- **Multer** - File upload middleware
 - **xml2js** - XML parsing (DOM-based)
 - **bcryptjs** - Password hashing
 - **jsonwebtoken** - JWT authentication
