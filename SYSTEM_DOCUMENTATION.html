@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MonkiHub — System Documentation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 11pt; color: #1a1a1a; background: #fff; line-height: 1.6; }
+
+    /* Page layout */
+    .page { max-width: 800px; margin: 0 auto; padding: 40px 60px; }
+
+    /* Cover Page */
+    .cover { text-align: center; padding: 100px 60px 80px; border-bottom: 3px solid #6d56f0; margin-bottom: 0; page-break-after: always; }
+    .cover .logo-box { width: 90px; height: 90px; background: linear-gradient(135deg, #6d56f0, #0d9488); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+    .cover h1 { font-size: 2.4rem; font-weight: 800; color: #6d56f0; margin-bottom: 8px; }
+    .cover .subtitle { font-size: 1.1rem; color: #555; margin-bottom: 40px; }
+    .cover .meta-table { display: inline-block; text-align: left; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; min-width: 340px; }
+    .cover .meta-row { display: flex; border-bottom: 1px solid #eee; }
+    .cover .meta-row:last-child { border-bottom: none; }
+    .cover .meta-label { background: #f5f3ff; padding: 10px 16px; font-weight: 700; color: #6d56f0; width: 140px; font-size: 10pt; }
+    .cover .meta-value { padding: 10px 16px; color: #333; font-size: 10pt; }
+    .cover .course-badge { display: inline-block; background: #f5f3ff; border: 1px solid #6d56f0; color: #6d56f0; padding: 6px 18px; border-radius: 20px; font-size: 10pt; font-weight: 600; margin-top: 32px; }
+
+    /* TOC */
+    .toc-page { page-break-after: always; padding-top: 20px; }
+    .toc-title { font-size: 1.4rem; font-weight: 800; color: #6d56f0; border-bottom: 2px solid #6d56f0; padding-bottom: 8px; margin-bottom: 20px; }
+    .toc-item { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dotted #ccc; font-size: 10.5pt; }
+    .toc-item.main { font-weight: 700; color: #333; margin-top: 8px; }
+    .toc-item.sub { padding-left: 20px; color: #555; }
+    .toc-num { color: #6d56f0; font-weight: 700; margin-right: 10px; }
+    .toc-page-num { color: #999; font-size: 9pt; }
+
+    /* Section headers */
+    .section { page-break-before: always; padding-top: 10px; }
+    .section-num { font-size: 0.75rem; font-weight: 700; color: #6d56f0; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .section-title { font-size: 1.5rem; font-weight: 800; color: #1a1a1a; border-bottom: 2px solid #6d56f0; padding-bottom: 8px; margin-bottom: 24px; }
+    .subsection-title { font-size: 1rem; font-weight: 700; color: #6d56f0; margin: 22px 0 10px; }
+    .sub2-title { font-size: 0.9rem; font-weight: 700; color: #333; margin: 16px 0 8px; }
+
+    /* Content elements */
+    p { margin-bottom: 10px; font-size: 10.5pt; }
+    ul, ol { margin: 8px 0 12px 24px; }
+    li { margin-bottom: 5px; font-size: 10.5pt; }
+    strong { color: #1a1a1a; }
+
+    /* Info boxes */
+    .info-box { background: #f5f3ff; border-left: 4px solid #6d56f0; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+    .info-box.green { background: #f0fdf4; border-color: #059669; }
+    .info-box.yellow { background: #fffbeb; border-color: #d97706; }
+    .info-box.red { background: #fef2f2; border-color: #ef4444; }
+    .info-box p { margin: 0; font-size: 10pt; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 10pt; }
+    th { background: #6d56f0; color: #fff; padding: 9px 12px; text-align: left; font-weight: 700; font-size: 9.5pt; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    tr:nth-child(even) td { background: #f9f8ff; }
+    tr:hover td { background: #f0eeff; }
+
+    /* Code blocks */
+    .code-block { background: #1e1e2e; color: #cdd6f4; padding: 14px 18px; border-radius: 8px; font-family: 'Consolas', 'Courier New', monospace; font-size: 9pt; margin: 12px 0; white-space: pre-wrap; word-break: break-all; line-height: 1.7; }
+    .code-inline { background: #f0eeff; color: #6d56f0; padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 9.5pt; }
+
+    /* Architecture diagram */
+    .arch-diagram { background: #0f1117; color: #e2e8f0; padding: 20px; border-radius: 10px; font-family: monospace; font-size: 8.5pt; line-height: 1.8; margin: 16px 0; white-space: pre; overflow-x: auto; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 8.5pt; font-weight: 700; }
+    .badge-purple { background: #f5f3ff; color: #6d56f0; border: 1px solid #6d56f0; }
+    .badge-green { background: #f0fdf4; color: #059669; border: 1px solid #059669; }
+    .badge-yellow { background: #fffbeb; color: #d97706; border: 1px solid #d97706; }
+    .badge-red { background: #fef2f2; color: #ef4444; border: 1px solid #ef4444; }
+
+    /* Role table */
+    .role-yes { color: #059669; font-weight: 700; }
+    .role-no  { color: #ef4444; font-weight: 700; }
+
+    /* Footer */
+    .footer { text-align: center; color: #999; font-size: 9pt; margin-top: 60px; padding-top: 16px; border-top: 1px solid #eee; }
+
+    /* Print */
+    @media print {
+      .page { padding: 20px 40px; }
+      .section { page-break-before: always; }
+      .cover { page-break-after: always; }
+      .toc-page { page-break-after: always; }
+      body { font-size: 10.5pt; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- COVER PAGE                                          -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page cover">
+  <div class="logo-box">🐒</div>
+  <h1>MonkiHub</h1>
+  <div class="subtitle">Team Collaboration &amp; Task Management Platform</div>
+  <div class="subtitle" style="font-size:0.95rem; color:#888; margin-top:-30px; margin-bottom:36px;">System Documentation</div>
+
+  <div class="meta-table">
+    <div class="meta-row">
+      <div class="meta-label">Project Name</div>
+      <div class="meta-value">MonkiHub</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-label">Document Type</div>
+      <div class="meta-value">System Documentation</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-label">Course</div>
+      <div class="meta-value">Web-Based Systems</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-label">Technology Stack</div>
+      <div class="meta-value">Node.js, XML, Kafka, Socket.IO</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-label">Deployment</div>
+      <div class="meta-value">Render (Cloud Hosting)</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-label">Date</div>
+      <div class="meta-value">2025</div>
+    </div>
+  </div>
+
+  <div class="course-badge">Final Project — Web-Based Systems</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                   -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page toc-page">
+  <div class="toc-title">Table of Contents</div>
+
+  <div class="toc-item main"><span><span class="toc-num">1.</span> System Overview</span></div>
+  <div class="toc-item sub"><span>1.1 Purpose of the System</span></div>
+  <div class="toc-item sub"><span>1.2 Target Users</span></div>
+  <div class="toc-item sub"><span>1.3 Key Capabilities</span></div>
+
+  <div class="toc-item main"><span><span class="toc-num">2.</span> System Architecture</span></div>
+  <div class="toc-item sub"><span>2.1 Architecture Overview</span></div>
+  <div class="toc-item sub"><span>2.2 Client-Server Diagram</span></div>
+  <div class="toc-item sub"><span>2.3 Kafka Message Flow Diagram</span></div>
+  <div class="toc-item sub"><span>2.4 Project Structure</span></div>
+
+  <div class="toc-item main"><span><span class="toc-num">3.</span> Feature Descriptions</span></div>
+  <div class="toc-item sub"><span>3.1 Messaging System (Apache Kafka)</span></div>
+  <div class="toc-item sub"><span>3.2 XML Data Storage</span></div>
+  <div class="toc-item sub"><span>3.3 XML Parsing Method (DOM)</span></div>
+  <div class="toc-item sub"><span>3.4 XSLT Transformations</span></div>
+  <div class="toc-item sub"><span>3.5 Scripting Integration</span></div>
+  <div class="toc-item sub"><span>3.6 Additional Features</span></div>
+
+  <div class="toc-item main"><span><span class="toc-num">4.</span> Technical Explanation</span></div>
+  <div class="toc-item sub"><span>4.1 How Each Requirement Was Implemented</span></div>
+  <div class="toc-item sub"><span>4.2 API Endpoints Reference</span></div>
+  <div class="toc-item sub"><span>4.3 Security Implementation</span></div>
+  <div class="toc-item sub"><span>4.4 Challenges &amp; Solutions</span></div>
+
+  <div class="toc-item main"><span><span class="toc-num">5.</span> Screenshots / Outputs</span></div>
+  <div class="toc-item sub"><span>5.1 Live System Link</span></div>
+  <div class="toc-item sub"><span>5.2 System Interface Overview</span></div>
+  <div class="toc-item sub"><span>5.3 XML File Samples</span></div>
+  <div class="toc-item sub"><span>5.4 XSLT Output Samples</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 1: SYSTEM OVERVIEW                          -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-num">Section 1</div>
+  <div class="section-title">System Overview</div>
+
+  <div class="subsection-title">1.1 Purpose of the System</div>
+  <p>
+    <strong>MonkiHub</strong> is a full-stack web-based team collaboration and task management platform
+    designed specifically for managing Virtual Assistants (VAs) and remote teams. It provides a
+    centralized workspace where administrators can assign tasks, communicate with team members in
+    real-time, track work progress, and process payments — all within a single web application.
+  </p>
+  <p>
+    The system was built as a final project for the Web-Based Systems course, demonstrating the
+    integration of modern web technologies including Apache Kafka as a message broker, XML-based
+    data storage with XSLT transformations, real-time communication via Socket.IO, and automated
+    background scripting.
+  </p>
+
+  <div class="info-box">
+    <p><strong>Core Mission:</strong> Replace manual task tracking and scattered communication tools
+    with a unified platform that demonstrates enterprise-level messaging patterns (producer-consumer)
+    and structured data management (XML/XSLT).</p>
+  </div>
+
+  <div class="subsection-title">1.2 Target Users</div>
+  <table>
+    <tr>
+      <th>Role</th>
+      <th>Description</th>
+      <th>Permissions</th>
+    </tr>
+    <tr>
+      <td><strong>Super Admin</strong></td>
+      <td>The highest-level administrator. Only one Super Admin exists (default: <span class="code-inline">admin</span>). Manages all users including other admins.</td>
+      <td>Full access — create admins, manage tasks, delete users, view all logs</td>
+    </tr>
+    <tr>
+      <td><strong>Admin</strong></td>
+      <td>Team managers or supervisors. Created by the Super Admin. Responsible for assigning tasks and approving work.</td>
+      <td>Create/manage tasks, approve/reject submissions, process payments, view logs</td>
+    </tr>
+    <tr>
+      <td><strong>User (VA)</strong></td>
+      <td>Virtual Assistants or team members. Register via the public registration form.</td>
+      <td>View assigned tasks, submit proof of work, send messages, request payments</td>
+    </tr>
+  </table>
+
+  <div class="subsection-title">1.3 Key Capabilities</div>
+  <ul>
+    <li><strong>Real-time messaging</strong> powered by Apache Kafka producer-consumer pattern</li>
+    <li><strong>Task management</strong> with Kanban board (To Do → In Progress → Pending Review → Done)</li>
+    <li><strong>Proof-of-work submission</strong> with admin approval/rejection workflow</li>
+    <li><strong>Payment request system</strong> supporting GCash, Maya, Bank Transfer, and PayPal</li>
+    <li><strong>XML data storage</strong> with XSLT transformations for structured data display</li>
+    <li><strong>Background automation scripts</strong> for notifications, archiving, and reporting</li>
+    <li><strong>Calendar view</strong> with task due date tracking and color-coded status indicators</li>
+    <li><strong>Security features</strong> including rate limiting, IP blacklisting, and CSP headers</li>
+    <li><strong>Mobile-responsive design</strong> with floating action button for mobile task creation</li>
+    <li><strong>Cloud image storage</strong> via Cloudinary for avatars, task references, and proof uploads</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 2: SYSTEM ARCHITECTURE                      -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-num">Section 2</div>
+  <div class="section-title">System Architecture</div>
+
+  <div class="subsection-title">2.1 Architecture Overview</div>
+  <p>
+    MonkiHub follows a <strong>three-tier architecture</strong>: a browser-based frontend (Presentation Layer),
+    a Node.js/Express backend (Application Layer), and XML files as the data store (Data Layer).
+    The system also integrates <strong>Apache Kafka</strong> as an external message broker between the
+    message producer (backend API) and the message consumer (background script).
+  </p>
+
+  <div class="subsection-title">2.2 Client-Server Architecture Diagram</div>
+  <div class="arch-diagram">
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLIENT LAYER                              │
+│   Browser (HTML5 / CSS3 / Vanilla JS / Socket.IO Client)        │
+│   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│   │   Desktop    │  │    Mobile    │  │    Tablet    │         │
+│   └──────┬───────┘  └──────┬───────┘  └──────┬───────┘         │
+└──────────┼──────────────────┼──────────────────┼────────────────┘
+           │                  │                  │
+           └──────────────────┴──────────────────┘
+                              │
+                 HTTP REST API + WebSocket (Socket.IO)
+                              │
+┌─────────────────────────────┴───────────────────────────────────┐
+│                     APPLICATION LAYER                            │
+│              Node.js + Express.js Server (Port 3000)            │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+│  │   Auth   │ │  Tasks   │ │ Messages │ │ Payments │          │
+│  │Controller│ │Controller│ │Controller│ │Controller│  + more  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘          │
+│  ┌─────────────────────────────────────────────────────┐       │
+│  │  Security Middleware: Helmet, Rate Limiter, HPP,    │       │
+│  │  IP Blacklist, Suspicious Pattern Detection         │       │
+│  └─────────────────────────────────────────────────────┘       │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+         ┌─────────────┴──────────────┐
+         │                            │
+┌────────▼───────────┐    ┌───────────▼────────────┐
+│  KAFKA MESSAGE     │    │  BACKGROUND SCRIPTS     │
+│  BROKER LAYER      │    │                         │
+│  ┌──────────────┐  │    │  consumer.js  (Kafka)   │
+│  │ Redpanda /   │  │    │  notifier.js  (Tasks)   │
+│  │ Local Kafka  │  │    │  archiver.js  (Cleanup) │
+│  │ Topic:       │  │    │  reporter.js  (Reports) │
+│  │ monkihub_    │  │    └────────────────────────┘
+│  │ messages     │  │
+│  └──────────────┘  │
+└────────────────────┘
+         │
+┌────────▼───────────────────────────────────────────────────────┐
+│                        DATA LAYER                               │
+│   XML Files (backend/data/)                                     │
+│   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
+│   │users.xml │ │tasks.xml │ │messages  │ │payments  │        │
+│   │(in Git)  │ │          │ │  .xml    │ │  .xml    │        │
+│   └──────────┘ └──────────┘ └──────────┘ └──────────┘        │
+│   ┌──────────┐ ┌──────────┐                                    │
+│   │ logs.xml │ │archive   │   XSLT: messages.xslt              │
+│   │          │ │  .xml    │         tasks.xslt                 │
+│   └──────────┘ └──────────┘         logs.xslt                 │
+└────────────────────────────────────────────────────────────────┘</div>
+
+  <div class="subsection-title">2.3 Kafka Message Flow Diagram</div>
+  <div class="arch-diagram">
+  USER A (Sender)                                    USER B (Receiver)
+       │                                                    ▲
+       │ POST /api/messages                                 │
+       ▼                                                    │
+  ┌────────────────┐                                        │
+  │ messageController│  publishMessage()                    │
+  │ (Producer)     │──────────────────────────────┐        │
+  └────────────────┘                              │        │
+                                                  ▼        │
+                                        ┌─────────────────┐│
+                                        │  Apache Kafka   ││
+                                        │  Broker         ││
+                                        │  Topic:         ││
+                                        │  monkihub_msgs  ││
+                                        └────────┬────────┘│
+                                                 │         │
+                                                 ▼         │
+                                        ┌─────────────────┐│
+                                        │  consumer.js    ││
+                                        │  (Subscriber)   ││
+                                        │  1. Parse msg   ││
+                                        │  2. Save to XML ││
+                                        │  3. Emit via    ││
+                                        │     Socket.IO   ││
+                                        └────────┬────────┘│
+                                                 │         │
+                                                 └─────────┘
+                                          socket.emit('message:new')
+
+  ⚠️  If consumer.js is STOPPED → messages are NOT delivered (by design)
+      This demonstrates the producer-consumer dependency pattern.</div>
+
+  <div class="subsection-title">2.4 Project Structure</div>
+  <div class="code-block">MonkiHub/
+├── backend/
+│   ├── controllers/     # Request handlers (auth, tasks, messages, payments, etc.)
+│   ├── models/          # XML data models (UserModel, TaskModel, MessageModel, etc.)
+│   ├── routes/          # Express API routes
+│   ├── services/
+│   │   ├── xmlService.js      # XML read/write operations + admin seed
+│   │   └── brokerService.js   # Kafka producer (publishes messages)
+│   ├── middleware/
+│   │   ├── auth.js            # JWT authentication + role guards
+│   │   ├── rateLimiter.js     # 8 rate limiter configurations
+│   │   └── security.js        # Helmet CSP, HPP, IP blacklist, pattern detection
+│   ├── data/            # XML data files (users.xml tracked in Git)
+│   ├── xslt/            # XSLT transformation stylesheets
+│   ├── scripts/         # Background automation scripts
+│   └── server.js        # Main Express + Socket.IO server
+├── frontend/
+│   ├── index.html       # Main single-page application
+│   ├── landing.html     # Public landing/recruitment page
+│   ├── css/style.css    # All styles including mobile responsive
+│   └── js/app.js        # All frontend logic (vanilla JS)
+└── README.md</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 3: FEATURE DESCRIPTIONS                     -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-num">Section 3</div>
+  <div class="section-title">Feature Descriptions</div>
+
+  <!-- 3.1 Messaging -->
+  <div class="subsection-title">3.1 Messaging System — Apache Kafka</div>
+  <p>
+    MonkiHub uses <strong>Apache Kafka</strong> (via Redpanda Cloud or local Docker) as the message
+    broker for all direct messages between users. This implements the classic
+    <strong>producer-consumer pattern</strong> used in real-world systems like Slack, WhatsApp, and Discord.
+  </p>
+
+  <div class="sub2-title">How it works:</div>
+  <ol>
+    <li>User types a message and clicks Send → frontend calls <span class="code-inline">POST /api/messages</span></li>
+    <li><span class="code-inline">messageController.js</span> calls <span class="code-inline">brokerService.publishMessage()</span> which sends the message to the Kafka topic <span class="code-inline">monkihub_messages</span></li>
+    <li><span class="code-inline">consumer.js</span> (running as a separate process) subscribes to the topic and receives the message</li>
+    <li>The consumer saves the message to <span class="code-inline">messages.xml</span> and emits it via Socket.IO to the recipient's browser</li>
+    <li>The recipient sees the message appear in real-time without refreshing</li>
+  </ol>
+
+  <div class="info-box yellow">
+    <p><strong>Demo Feature:</strong> If <span class="code-inline">consumer.js</span> is stopped from the Script Manager panel, messages will NOT be delivered. Starting it again resumes delivery. This visually demonstrates the broker dependency.</p>
+  </div>
+
+  <div class="sub2-title">Kafka Configuration:</div>
+  <table>
+    <tr><th>Setting</th><th>Value</th></tr>
+    <tr><td>Topic Name</td><td><span class="code-inline">monkihub_messages</span></td></tr>
+    <tr><td>Producer</td><td><span class="code-inline">backend/services/brokerService.js</span></td></tr>
+    <tr><td>Consumer</td><td><span class="code-inline">backend/scripts/consumer.js</span></td></tr>
+    <tr><td>Cloud Broker</td><td>Redpanda Cloud (Kafka-compatible, free tier)</td></tr>
+    <tr><td>Local Broker</td><td>Docker (localhost:9092, no auth required)</td></tr>
+    <tr><td>Auth Method</td><td>SCRAM-SHA-256 (cloud only, auto-detected)</td></tr>
+    <tr><td>Fallback</td><td>In-memory delivery if Kafka is unavailable</td></tr>
+  </table>
+
+  <!-- 3.2 XML -->
+  <div class="subsection-title">3.2 XML Data Storage</div>
+  <p>
+    All application data is stored in <strong>XML files</strong> located in <span class="code-inline">backend/data/</span>.
+    XML was chosen as the primary data format to fulfill the course requirement for structured data
+    storage and to demonstrate XML parsing and XSLT transformation capabilities.
+  </p>
+
+  <table>
+    <tr>
+      <th>File</th>
+      <th>Contents</th>
+      <th>Root Element</th>
+      <th>Git Tracked</th>
+    </tr>
+    <tr>
+      <td><span class="code-inline">users.xml</span></td>
+      <td>User accounts, roles, hashed passwords, avatars</td>
+      <td><span class="code-inline">&lt;users&gt;</span></td>
+      <td><span class="role-yes">✓ Yes</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-inline">tasks.xml</span></td>
+      <td>Tasks, assignees, status, priority, due dates, proof</td>
+      <td><span class="code-inline">&lt;tasks&gt;</span></td>
+      <td><span class="role-no">✗ No</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-inline">messages.xml</span></td>
+      <td>Chat messages, sender, receiver, timestamp, room</td>
+      <td><span class="code-inline">&lt;messages&gt;</span></td>
+      <td><span class="role-no">✗ No</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-inline">payments.xml</span></td>
+      <td>Payment requests, amounts, methods, status</td>
+      <td><span class="code-inline">&lt;payments&gt;</span></td>
+      <td><span class="role-no">✗ No</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-inline">logs.xml</span></td>
+      <td>System activity logs, actions, actors, timestamps</td>
+      <td><span class="code-inline">&lt;logs&gt;</span></td>
+      <td><span class="role-no">✗ No</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-inline">archive.xml</span></td>
+      <td>Archived tasks and messages older than 7 days</td>
+      <td><span class="code-inline">&lt;archive&gt;</span></td>
+      <td><span class="role-no">✗ No</span></td>
+    </tr>
+  </table>
+
+  <div class="sub2-title">Sample XML Structure (users.xml):</div>
+  <div class="code-block">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;users&gt;
+  &lt;user id="user-dee3f2bc"&gt;
+    &lt;username&gt;admin&lt;/username&gt;
+    &lt;password&gt;$2a$10$ieD2wZb...&lt;/password&gt;
+    &lt;role&gt;admin&lt;/role&gt;
+    &lt;email&gt;admin@monkihub.local&lt;/email&gt;
+    &lt;createdAt&gt;2026-05-06T02:28:54.406Z&lt;/createdAt&gt;
+    &lt;isSuperAdmin&gt;true&lt;/isSuperAdmin&gt;
+  &lt;/user&gt;
+&lt;/users&gt;</div>
+
+  <div class="sub2-title">Sample XML Structure (tasks.xml):</div>
+  <div class="code-block">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;tasks&gt;
+  &lt;task id="task-a1b2c3d4"&gt;
+    &lt;title&gt;Design landing page mockup&lt;/title&gt;
+    &lt;description&gt;Create Figma wireframes for the new landing page&lt;/description&gt;
+    &lt;assignee&gt;jed&lt;/assignee&gt;
+    &lt;priority&gt;high&lt;/priority&gt;
+    &lt;status&gt;in-progress&lt;/status&gt;
+    &lt;dueDate&gt;2025-06-15&lt;/dueDate&gt;
+    &lt;createdAt&gt;2025-06-01T08:00:00.000Z&lt;/createdAt&gt;
+  &lt;/task&gt;
+&lt;/tasks&gt;</div>
+
+  <!-- 3.3 XML Parsing -->
+  <div class="subsection-title">3.3 XML Parsing Method — DOM Parsing with xml2js</div>
+  <p>
+    MonkiHub uses the <strong>xml2js</strong> Node.js library for DOM-based XML parsing.
+    The library converts XML files into JavaScript objects, allowing full CRUD operations
+    on the data without a traditional database.
+  </p>
+
+  <div class="sub2-title">Parsing Implementation (xmlService.js):</div>
+  <div class="code-block">const xml2js = require('xml2js');
+
+const parser  = new xml2js.Parser();   // XML → JS Object
+const builder = new xml2js.Builder({   // JS Object → XML
+  xmldec: { version: '1.0', encoding: 'UTF-8' }
+});
+
+// READ: Parse XML file into JavaScript object
+async function readXml(filename) {
+  const content = await fs.readFile(path.join(DATA_DIR, filename), 'utf8');
+  return parser.parseStringPromise(content);
+  // Result: { tasks: { task: [ { $: {id:'...'}, title:['...'], ... } ] } }
+}
+
+// WRITE: Convert JS object back to XML and save
+async function writeXml(filename, data) {
+  const xml = builder.buildObject(data);
+  await fs.writeFile(path.join(DATA_DIR, filename), xml, 'utf8');
+}</div>
+
+  <div class="sub2-title">How xml2js Parses XML Attributes:</div>
+  <p>xml2js maps XML attributes to the <span class="code-inline">$</span> property and element text content to arrays:</p>
+  <div class="code-block">// XML:  &lt;user id="user-abc"&gt;&lt;username&gt;admin&lt;/username&gt;&lt;/user&gt;
+// Parsed JS object:
+{
+  $: { id: "user-abc" },      // XML attributes → $ object
+  username: ["admin"],         // Element text → array
+  role: ["admin"],
+  isSuperAdmin: ["true"]
+}</div>
+
+  <div class="sub2-title">CRUD Operations via DOM Parsing:</div>
+  <ul>
+    <li><strong>Create:</strong> Read XML → push new object to array → write back to file</li>
+    <li><strong>Read:</strong> Parse XML → filter/find by field values</li>
+    <li><strong>Update:</strong> Parse XML → find index → modify fields → write back</li>
+    <li><strong>Delete:</strong> Parse XML → filter out target → write back</li>
+  </ul>
+
+  <!-- 3.4 XSLT -->
+  <div class="subsection-title">3.4 XSLT Transformations</div>
+  <p>
+    MonkiHub includes <strong>3 XSLT stylesheets</strong> that transform raw XML data into
+    formatted HTML tables for display in the XML Viewer panel. The transformations are
+    executed server-side using the <span class="code-inline">xslt3</span> Node.js package.
+  </p>
+
+  <table>
+    <tr>
+      <th>XSLT File</th>
+      <th>Input XML</th>
+      <th>Output</th>
+      <th>XSLT Features Used</th>
+    </tr>
+    <tr>
+      <td><span class="code-inline">messages.xslt</span></td>
+      <td>messages.xml</td>
+      <td>HTML table of all messages, sorted newest first, with summary counts</td>
+      <td>xsl:for-each, xsl:sort, xsl:if, xsl:attribute, xsl:value-of</td>
+    </tr>
+    <tr>
+      <td><span class="code-inline">tasks.xslt</span></td>
+      <td>tasks.xml</td>
+      <td>HTML table of tasks with status badges, priority labels, due dates</td>
+      <td>xsl:for-each, xsl:sort, xsl:choose, xsl:when, xsl:attribute</td>
+    </tr>
+    <tr>
+      <td><span class="code-inline">logs.xslt</span></td>
+      <td>logs.xml</td>
+      <td>HTML table of activity logs, color-coded by action type</td>
+      <td>xsl:for-each, xsl:sort, xsl:choose, xsl:when, starts-with()</td>
+    </tr>
+  </table>
+
+  <div class="sub2-title">Sample XSLT (messages.xslt — key excerpt):</div>
+  <div class="code-block">&lt;xsl:template match="/messages"&gt;
+  &lt;!-- Summary counts --&gt;
+  &lt;div class="xslt-summary"&gt;
+    Total: &lt;strong&gt;&lt;xsl:value-of select="count(message)"/&gt;&lt;/strong&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Sort messages newest first --&gt;
+  &lt;xsl:for-each select="message"&gt;
+    &lt;xsl:sort select="timestamp" order="descending"/&gt;
+    &lt;tr&gt;
+      &lt;!-- Alternate row shading via xsl:attribute --&gt;
+      &lt;xsl:attribute name="class"&gt;
+        &lt;xsl:choose&gt;
+          &lt;xsl:when test="position() mod 2 = 0"&gt;row-even&lt;/xsl:when&gt;
+          &lt;xsl:otherwise&gt;row-odd&lt;/xsl:otherwise&gt;
+        &lt;/xsl:choose&gt;
+      &lt;/xsl:attribute&gt;
+      &lt;!-- Truncate long messages with xsl:if --&gt;
+      &lt;xsl:if test="string-length(content) &gt; 60"&gt;
+        &lt;xsl:value-of select="substring(content, 1, 60)"/&gt;...
+      &lt;/xsl:if&gt;
+    &lt;/tr&gt;
+  &lt;/xsl:for-each&gt;
+&lt;/xsl:template&gt;</div>
+
+  <div class="sub2-title">XSLT Execution (xmlService.js):</div>
+  <div class="code-block">// Server-side XSLT transformation using xslt3 CLI
+async function transformXslt(xmlFile, xsltFile) {
+  const xslt3 = path.join(__dirname, '../node_modules/xslt3/xslt3.js');
+  return new Promise((resolve) => {
+    execFile(process.execPath, [xslt3, `-xsl:${xsltPath}`, `-s:${xmlPath}`],
+      { timeout: 10000 }, (err, stdout) => {
+        if (err || !stdout.trim()) resolve(buildFallbackHtml(xml, xmlFile));
+        else resolve(stdout);  // Returns transformed HTML
+      });
+  });
+}</div>
+
+  <!-- 3.5 Scripting -->
+  <div class="subsection-title">3.5 Scripting Integration</div>
+  <p>
+    MonkiHub includes <strong>4 background automation scripts</strong> written in Node.js.
+    These scripts run as separate processes and can be started/stopped from the Script Manager
+    panel in the UI without touching the command line.
+  </p>
+
+  <table>
+    <tr>
+      <th>Script</th>
+      <th>File</th>
+      <th>Function</th>
+      <th>Trigger</th>
+    </tr>
+    <tr>
+      <td><strong>Consumer</strong></td>
+      <td><span class="code-inline">consumer.js</span></td>
+      <td>Subscribes to Kafka topic. For each message: saves to messages.xml, delivers via Socket.IO</td>
+      <td>Manual start (required for chat)</td>
+    </tr>
+    <tr>
+      <td><strong>Notifier</strong></td>
+      <td><span class="code-inline">notifier.js</span></td>
+      <td>Polls tasks.xml every 5 seconds. Sends system notifications when new tasks are created</td>
+      <td>Runs continuously while active</td>
+    </tr>
+    <tr>
+      <td><strong>Archiver</strong></td>
+      <td><span class="code-inline">archiver.js</span></td>
+      <td>Moves tasks and messages older than 7 days from active XML files to archive.xml</td>
+      <td>Runs once then exits</td>
+    </tr>
+    <tr>
+      <td><strong>Reporter</strong></td>
+      <td><span class="code-inline">reporter.js</span></td>
+      <td>Generates a full HTML performance report (VA stats, payroll, task breakdown). Watches XML files and auto-regenerates on changes</td>
+      <td>Runs + watches for file changes</td>
+    </tr>
+  </table>
+
+  <div class="sub2-title">Script Manager UI:</div>
+  <p>
+    Admins can start and stop scripts directly from the web interface under the
+    <strong>Scripts Panel</strong>. Live console output is streamed to the browser via Socket.IO,
+    allowing real-time monitoring without SSH access.
+  </p>
+
+  <!-- 3.6 Additional Features -->
+  <div class="subsection-title">3.6 Additional Features</div>
+
+  <div class="sub2-title">Task Management (Kanban Board)</div>
+  <ul>
+    <li>Three-column Kanban: To Do → In Progress → Pending Review</li>
+    <li>Admin creates tasks with title, description, assignee, priority, due date, and optional reference image</li>
+    <li>VA submits proof of work (image or file upload) for admin review</li>
+    <li>Admin approves (moves to Done) or rejects with a reason (returns to In Progress)</li>
+    <li>Approval History panel shows all completed tasks with proof and approver details</li>
+  </ul>
+
+  <div class="sub2-title">Calendar &amp; Due Dates</div>
+  <ul>
+    <li>Monthly calendar view showing tasks on their due dates</li>
+    <li>Color-coded chips: Red (overdue), Yellow (due within 3 days), Green (on track), Gray (done)</li>
+    <li>Upcoming due dates widget on the dashboard</li>
+    <li>Admin can edit due dates directly from task cards or calendar popups</li>
+  </ul>
+
+  <div class="sub2-title">Payment System</div>
+  <ul>
+    <li>VAs submit payment requests with method (GCash, Maya, Bank Transfer, PayPal), account details, and amount</li>
+    <li>Admin reviews pending requests, uploads proof of payment, and marks as paid or rejected</li>
+    <li>Full payment history with status tracking per user</li>
+  </ul>
+
+  <div class="sub2-title">Security Features</div>
+  <ul>
+    <li>Multi-layer rate limiting: 500 req/15min global, 60 req/min API, stricter limits on auth routes</li>
+    <li>Auto IP blacklisting after 50 failed login attempts within 1 hour (24-hour ban)</li>
+    <li>Helmet.js security headers: CSP, HSTS, XSS protection, frameguard</li>
+    <li>HTTP Parameter Pollution (HPP) protection</li>
+    <li>Socket.IO connection limit: 10 connections per IP</li>
+    <li>Password strength validation: minimum "fair" strength required (3 of 5 criteria)</li>
+    <li>JWT-based authentication with 24-hour token expiry</li>
+  </ul>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 4: TECHNICAL EXPLANATION                    -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-num">Section 4</div>
+  <div class="section-title">Technical Explanation</div>
+
+  <div class="subsection-title">4.1 How Each Requirement Was Implemented</div>
+
+  <div class="sub2-title">✅ Requirement 1: Messaging System with Message Broker (Kafka)</div>
+  <div class="info-box green">
+    <p><strong>Implementation:</strong> Apache Kafka via Redpanda Cloud (or local Docker). Producer in <span class="code-inline">brokerService.js</span>, Consumer in <span class="code-inline">scripts/consumer.js</span>.</p>
+  </div>
+  <p>
+    When a user sends a message, <span class="code-inline">messageController.js</span> calls
+    <span class="code-inline">publishMessage()</span> which uses the KafkaJS library to produce
+    a message to the <span class="code-inline">monkihub_messages</span> topic. The consumer script
+    runs as a separate Node.js process, subscribes to the same topic, and for each message received:
+    (1) parses the JSON payload, (2) saves it to <span class="code-inline">messages.xml</span> via
+    <span class="code-inline">MessageModel.create()</span>, and (3) emits a
+    <span class="code-inline">consumer:deliver</span> Socket.IO event back to the main server,
+    which then forwards it to the recipient's browser via <span class="code-inline">user:&lt;username&gt;</span> rooms.
+  </p>
+  <p>
+    The system auto-detects whether Kafka is running locally (no SSL/SASL) or in the cloud
+    (SCRAM-SHA-256 authentication). If Kafka is completely unavailable, an in-memory fallback
+    delivers messages directly without the broker.
+  </p>
+
+  <div class="sub2-title">✅ Requirement 2: XML Data Handling</div>
+  <div class="info-box green">
+    <p><strong>Implementation:</strong> 6 XML files in <span class="code-inline">backend/data/</span>. All CRUD operations read/write XML using xml2js.</p>
+  </div>
+  <p>
+    Every data entity (users, tasks, messages, payments, logs, archive) is stored as a structured
+    XML file with meaningful element names and hierarchy. The <span class="code-inline">xmlService.js</span>
+    service provides centralized <span class="code-inline">readXml()</span> and
+    <span class="code-inline">writeXml()</span> functions used by all model files.
+    Data validity is maintained by always reading the full file, modifying the in-memory object,
+    and writing the complete file back — ensuring the XML remains well-formed at all times.
+  </p>
+  <p>
+    The <span class="code-inline">users.xml</span> file is tracked in Git so that user accounts
+    persist across cloud deployments on Render. Other data files are excluded from Git and reset
+    on each deploy (ephemeral storage).
+  </p>
+
+  <div class="sub2-title">✅ Requirement 3: XML Parsing (DOM)</div>
+  <div class="info-box green">
+    <p><strong>Implementation:</strong> <span class="code-inline">xml2js</span> library for DOM-based parsing. All models use <span class="code-inline">parser.parseStringPromise()</span>.</p>
+  </div>
+  <p>
+    The <span class="code-inline">xml2js.Parser()</span> instance converts XML files into a
+    JavaScript object tree (DOM-like structure). Each model file (UserModel, TaskModel, etc.)
+    uses this parsed object to perform CRUD operations:
+  </p>
+  <ul>
+    <li><strong>findAll()</strong> — reads and maps all records to plain objects</li>
+    <li><strong>findByUsername() / findById()</strong> — filters the parsed array</li>
+    <li><strong>create()</strong> — pushes a new object and writes back to XML</li>
+    <li><strong>update()</strong> — finds by index, modifies fields, writes back</li>
+    <li><strong>delete()</strong> — filters out the target record, writes back</li>
+  </ul>
+
+  <div class="sub2-title">✅ Requirement 4: XSL/XSLT Transformations</div>
+  <div class="info-box green">
+    <p><strong>Implementation:</strong> 3 XSLT files executed server-side via <span class="code-inline">xslt3</span> CLI. Accessible in the XML Viewer panel.</p>
+  </div>
+  <p>
+    The XML Viewer panel (accessible to all authenticated users) provides two views:
+    <strong>Raw XML</strong> (plain text) and <strong>XSLT Output</strong> (transformed HTML table).
+    When the XSLT view is selected, the server calls <span class="code-inline">transformXslt()</span>
+    which runs the <span class="code-inline">xslt3</span> Node.js package as a child process,
+    passing the XML file and XSLT stylesheet. The resulting HTML is returned to the browser and
+    rendered inline. Each XSLT file uses multiple XSLT elements:
+    <span class="code-inline">xsl:for-each</span>, <span class="code-inline">xsl:sort</span>,
+    <span class="code-inline">xsl:choose</span>, <span class="code-inline">xsl:when</span>,
+    <span class="code-inline">xsl:if</span>, <span class="code-inline">xsl:attribute</span>,
+    and <span class="code-inline">xsl:value-of</span>.
+  </p>
+
+  <div class="sub2-title">✅ Requirement 5: Scripting Languages (Node.js)</div>
+  <div class="info-box green">
+    <p><strong>Implementation:</strong> 4 automation scripts in <span class="code-inline">backend/scripts/</span>. Managed via Script Manager UI.</p>
+  </div>
+  <p>
+    All four scripts are standalone Node.js programs that can run independently of the main server.
+    The <span class="code-inline">scriptController.js</span> uses Node's
+    <span class="code-inline">child_process.spawn()</span> to start scripts as child processes,
+    captures their stdout/stderr, and streams log lines to the browser via Socket.IO events
+    (<span class="code-inline">script:log:&lt;name&gt;</span>). Scripts can be stopped by
+    calling <span class="code-inline">process.kill()</span> on the child process PID.
+  </p>
+
+  <div class="sub2-title">✅ Requirement 6: Web Deployment</div>
+  <div class="info-box green">
+    <p><strong>Implementation:</strong> Deployed on Render.com (free tier). Monitored 24/7 via UptimeRobot.</p>
+  </div>
+  <p>
+    The application is deployed as a single Web Service on Render. The root
+    <span class="code-inline">package.json</span> defines the build command
+    (<span class="code-inline">npm install</span>) and start command
+    (<span class="code-inline">npm start</span> → <span class="code-inline">node backend/server.js</span>).
+    Environment variables (Kafka credentials, JWT secret, Cloudinary keys) are configured in
+    Render's dashboard. UptimeRobot pings the URL every 5 minutes to prevent the free-tier
+    instance from sleeping.
+  </p>
+
+  <div class="subsection-title">4.2 API Endpoints Reference</div>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td>POST</td><td>/api/auth/login</td><td>None</td><td>Login, returns JWT token</td></tr>
+    <tr><td>POST</td><td>/api/auth/register</td><td>None</td><td>Register new user account</td></tr>
+    <tr><td>GET</td><td>/api/auth/list</td><td>Any user</td><td>List users (safe fields — for chat)</td></tr>
+    <tr><td>GET</td><td>/api/auth/users</td><td>Admin</td><td>List all users with full details</td></tr>
+    <tr><td>POST</td><td>/api/auth/create-admin</td><td>Super Admin</td><td>Create new admin account</td></tr>
+    <tr><td>DELETE</td><td>/api/auth/users/:username</td><td>Admin</td><td>Delete a user account</td></tr>
+    <tr><td>GET</td><td>/api/auth/profile</td><td>Any user</td><td>Get own profile</td></tr>
+    <tr><td>PUT</td><td>/api/auth/profile</td><td>Any user</td><td>Update profile / change password</td></tr>
+    <tr><td>GET</td><td>/api/tasks</td><td>Any user</td><td>Get tasks (filtered by role)</td></tr>
+    <tr><td>POST</td><td>/api/tasks</td><td>Admin</td><td>Create new task</td></tr>
+    <tr><td>PUT</td><td>/api/tasks/:id</td><td>Admin</td><td>Update task / set due date</td></tr>
+    <tr><td>DELETE</td><td>/api/tasks/:id</td><td>Admin</td><td>Delete task</td></tr>
+    <tr><td>POST</td><td>/api/tasks/:id/submit</td><td>Any user</td><td>Submit proof of work</td></tr>
+    <tr><td>POST</td><td>/api/tasks/:id/approve</td><td>Admin</td><td>Approve task submission</td></tr>
+    <tr><td>POST</td><td>/api/tasks/:id/reject</td><td>Admin</td><td>Reject with reason</td></tr>
+    <tr><td>GET</td><td>/api/messages/conversation/:user</td><td>Any user</td><td>Get conversation history</td></tr>
+    <tr><td>POST</td><td>/api/messages</td><td>Any user</td><td>Send message via Kafka</td></tr>
+    <tr><td>POST</td><td>/api/payments</td><td>Any user</td><td>Submit payment request</td></tr>
+    <tr><td>GET</td><td>/api/payments</td><td>Admin</td><td>Get all payment requests</td></tr>
+    <tr><td>GET</td><td>/api/payments/mine</td><td>Any user</td><td>Get own payment history</td></tr>
+    <tr><td>POST</td><td>/api/payments/:id/pay</td><td>Admin</td><td>Mark payment as paid</td></tr>
+    <tr><td>GET</td><td>/api/xml/raw/:file</td><td>Any user</td><td>Get raw XML file content</td></tr>
+    <tr><td>GET</td><td>/api/xml/transform/:file</td><td>Any user</td><td>Get XSLT-transformed HTML</td></tr>
+    <tr><td>GET</td><td>/api/scripts/status</td><td>Admin</td><td>Get all script statuses</td></tr>
+    <tr><td>POST</td><td>/api/scripts/start/:script</td><td>Admin</td><td>Start a background script</td></tr>
+    <tr><td>POST</td><td>/api/scripts/stop/:script</td><td>Admin</td><td>Stop a running script</td></tr>
+  </table>
+
+  <div class="subsection-title">4.3 Security Implementation</div>
+  <table>
+    <tr><th>Security Layer</th><th>Implementation</th><th>Configuration</th></tr>
+    <tr><td>Security Headers</td><td>Helmet.js middleware</td><td>CSP, HSTS (1yr), XSS filter, frameguard (deny), noSniff</td></tr>
+    <tr><td>CSP Inline Handlers</td><td>scriptSrcAttr: unsafe-inline</td><td>Allows onclick= handlers in HTML</td></tr>
+    <tr><td>Global Rate Limit</td><td>express-rate-limit</td><td>500 requests per 15 minutes per IP</td></tr>
+    <tr><td>API Rate Limit</td><td>express-rate-limit</td><td>60 requests per minute per IP</td></tr>
+    <tr><td>Auth Rate Limit</td><td>express-rate-limit</td><td>10 login attempts per 15 minutes</td></tr>
+    <tr><td>Speed Limiter</td><td>express-slow-down</td><td>Gradual delay after 100 requests</td></tr>
+    <tr><td>IP Blacklisting</td><td>Custom middleware</td><td>Auto-ban after 50 failed attempts, 24hr duration</td></tr>
+    <tr><td>Pattern Detection</td><td>Custom middleware</td><td>Blocks XSS, SQL injection, path traversal in request body</td></tr>
+    <tr><td>HPP Protection</td><td>hpp middleware</td><td>Prevents HTTP Parameter Pollution attacks</td></tr>
+    <tr><td>Request Size</td><td>express.json limit</td><td>10MB maximum request body size</td></tr>
+    <tr><td>Socket.IO Limits</td><td>Custom middleware</td><td>10 connections maximum per IP address</td></tr>
+    <tr><td>Password Strength</td><td>Frontend validation</td><td>Minimum "fair" (3/5 criteria): 8+ chars, upper, lower, number, special</td></tr>
+    <tr><td>Authentication</td><td>JWT (jsonwebtoken)</td><td>24-hour expiry, signed with JWT_SECRET env var</td></tr>
+    <tr><td>Password Storage</td><td>bcryptjs</td><td>bcrypt hash with salt rounds = 10</td></tr>
+  </table>
+
+  <div class="subsection-title">4.4 Challenges Encountered and Solutions</div>
+
+  <table>
+    <tr><th>#</th><th>Challenge</th><th>Solution</th></tr>
+    <tr>
+      <td>1</td>
+      <td><strong>Dashboard hang after login</strong> — The dashboard froze because <span class="code-inline">/auth/list</span> required admin role. Regular users got a 403 error inside <span class="code-inline">Promise.all()</span>, crashing the entire dashboard load and leaving skeleton loaders permanently.</td>
+      <td>Made the users fetch conditional: <span class="code-inline">isAdmin ? apiCall('/auth/list') : Promise.resolve([])</span>. Also created a separate <span class="code-inline">listUsers</span> endpoint that returns safe user data for all authenticated users (needed for chat).</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Buttons not working (CSP blocking onclick handlers)</strong> — Helmet.js sets <span class="code-inline">script-src-attr 'none'</span> by default, which blocked all inline event handlers like <span class="code-inline">onclick="login()"</span> in the HTML.</td>
+      <td>Added <span class="code-inline">scriptSrcAttr: ["'unsafe-inline'"]</span> to the Helmet CSP configuration to explicitly allow inline event handlers.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Stateful regex bug blocking random requests</strong> — The suspicious pattern detection middleware used regex with the <span class="code-inline">/g</span> flag (e.g., <span class="code-inline">/on\w+\s*=/gi</span>). JavaScript regexes with the <span class="code-inline">g</span> flag retain <span class="code-inline">lastIndex</span> between calls, causing alternating pass/fail on every other request.</td>
+      <td>Removed the <span class="code-inline">g</span> flag from all patterns and simplified the pattern list to only match genuinely dangerous inputs (script tags, SQL injection, path traversal).</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>xml2js raw node access crash</strong> — Multiple controller functions called <span class="code-inline">u.$.id</span> and <span class="code-inline">u.username[0]</span> directly on raw xml2js nodes. When <span class="code-inline">$</span> was undefined (e.g., for users without XML attributes), the app crashed with "Cannot read properties of undefined (reading 'id')".</td>
+      <td>Standardized all data access through <span class="code-inline">UserModel.findAll()</span> which maps raw xml2js nodes to clean plain objects (<span class="code-inline">{ id, username, role, ... }</span>). All controllers now use these mapped objects.</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>User accounts lost on every Render deploy</strong> — Render's free tier uses ephemeral storage, wiping all files on each deployment. All user accounts created online were deleted every time the app was redeployed.</td>
+      <td>Added <span class="code-inline">users.xml</span> back to Git tracking (removed from <span class="code-inline">.gitignore</span>). Now user accounts persist across deploys. Other data files (tasks, messages, etc.) remain ephemeral.</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><strong>Super Admin role lost after fresh deploy</strong> — The admin seed function in <span class="code-inline">xmlService.js</span> created the admin user without the <span class="code-inline">isSuperAdmin</span> field. On a fresh deployment, the JWT token had <span class="code-inline">isSuperAdmin: false</span>, hiding the Create Admin button.</td>
+      <td>Added <span class="code-inline">isSuperAdmin: ['true']</span> to the seeded admin user object in <span class="code-inline">initXmlFiles()</span>.</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><strong>Kafka SSL/SASL errors on local development</strong> — The Kafka client was configured with SSL and SASL authentication for cloud use, but local Docker Kafka doesn't require authentication, causing connection failures.</td>
+      <td>Added auto-detection: if <span class="code-inline">KAFKA_BROKER</span> contains <span class="code-inline">localhost</span> or <span class="code-inline">127.0.0.1</span>, SSL and SASL are skipped. Cloud brokers use SCRAM-SHA-256 authentication.</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td><strong>CORS blocking all API requests on Render</strong> — The custom CORS middleware only allowed specific origins (localhost:3000 and env vars). On Render, the origin didn't match exactly, so no CORS headers were set, making every fetch() call fail silently.</td>
+      <td>Simplified the CORS middleware to always set <span class="code-inline">Access-Control-Allow-Origin</span> to the request origin (or *), since the frontend is served from the same server.</td>
+    </tr>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- SECTION 5: SCREENSHOTS / OUTPUTS                    -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page section">
+  <div class="section-num">Section 5</div>
+  <div class="section-title">Screenshots / Outputs</div>
+
+  <div class="subsection-title">5.1 Live System Link</div>
+  <div class="info-box">
+    <p><strong>Live URL:</strong> <span class="code-inline">https://monkihub.onrender.com</span> (replace with your actual Render URL)</p>
+    <p style="margin-top:6px"><strong>Default Login:</strong> Username: <span class="code-inline">admin</span> &nbsp;|&nbsp; Password: <span class="code-inline">admin</span></p>
+    <p style="margin-top:6px"><strong>GitHub Repository:</strong> <span class="code-inline">https://github.com/JedTipudan/monkihub</span></p>
+  </div>
+
+  <div class="subsection-title">5.2 System Interface Overview</div>
+
+  <div class="sub2-title">Login / Registration Screen</div>
+  <p>
+    The authentication screen features two tabs: <strong>Login</strong> and <strong>Register</strong>.
+    The registration form includes a real-time password strength meter that evaluates 5 criteria
+    (length, uppercase, lowercase, number, special character) and requires at least "Fair" strength
+    before submission. A password confirmation field with match indicator is also included.
+  </p>
+  <div class="info-box">
+    <p>📸 <em>Screenshot: Auth screen with password strength meter showing "Good Password" indicator and green checkmarks for met requirements.</em></p>
+  </div>
+
+  <div class="sub2-title">Dashboard Panel</div>
+  <p>
+    The dashboard displays 6 stat cards (Total Tasks, Messages, To Do, In Progress, Completed,
+    Team Members), an Activity Feed showing the latest 8 events merged from tasks and messages,
+    a Recent Tasks list, and an Upcoming Due Dates widget. All data loads asynchronously with
+    skeleton loading animations.
+  </p>
+  <div class="info-box">
+    <p>📸 <em>Screenshot: Dashboard with stat cards, activity feed showing task assignments and messages, and upcoming due dates widget.</em></p>
+  </div>
+
+  <div class="sub2-title">Task Board (Kanban)</div>
+  <p>
+    The Kanban board shows three columns: To Do, In Progress, and Pending Review. Each task card
+    displays the title, description, assignee, priority badge, due date badge (color-coded), and
+    action buttons. Admins see Move and Delete buttons; VAs see a Submit for Review button.
+    On mobile, the desktop task form is hidden and replaced by a floating <strong>+</strong> button
+    that opens a slide-up bottom sheet for task creation.
+  </p>
+  <div class="info-box">
+    <p>📸 <em>Screenshot: Kanban board with task cards showing priority badges (High/Medium/Low), due date badges (Overdue in red, Due Soon in yellow, On Track in green), and admin action buttons.</em></p>
+  </div>
+
+  <div class="sub2-title">Chat Panel (Kafka Messaging)</div>
+  <p>
+    The chat panel shows a user list on the left and the conversation on the right. Messages
+    appear in real-time after being processed by the Kafka consumer. Own messages appear on the
+    right (purple bubble), received messages on the left. Unread message badges appear on user
+    names and the Chat nav button.
+  </p>
+  <div class="info-box">
+    <p>📸 <em>Screenshot: Chat panel with conversation showing sent/received messages, unread badge on user list, and broker status indicator showing "Broker Online".</em></p>
+  </div>
+
+  <div class="sub2-title">Script Manager Panel</div>
+  <p>
+    The Script Manager shows 5 cards: Consumer, Notifier, Archiver, Reporter, and User Manager.
+    Each card has Start/Stop buttons, a status indicator (Running/Stopped), and a live log console
+    that streams output in real-time. The User Manager card loads a table of all users with
+    delete buttons and a Create Admin form (Super Admin only).
+  </p>
+  <div class="info-box">
+    <p>📸 <em>Screenshot: Script Manager with Consumer card showing "● Running" status and live log output: "📨 Message received from Kafka — From: admin → To: jed".</em></p>
+  </div>
+
+  <div class="sub2-title">XML Viewer Panel</div>
+  <p>
+    The XML Viewer provides tabs for Messages, Tasks, and Logs, with toggle buttons for
+    Raw XML and XSLT Output views. The XSLT view renders a formatted HTML table with
+    summary statistics, sorted rows, and color-coded status indicators.
+  </p>
+  <div class="info-box">
+    <p>📸 <em>Screenshot: XML Viewer showing Tasks XSLT output — HTML table with columns ID, Title, Assignee, Status (✓ Done / ▶ In Progress), Priority (🔴 High / 🟠 Medium), Due Date.</em></p>
+  </div>
+
+  <div class="sub2-title">Calendar Panel</div>
+  <p>
+    The calendar shows a monthly grid with task due dates as colored chips on each day.
+    Clicking a chip opens a popup with task details. The legend explains the color coding.
+    Navigation buttons allow moving between months.
+  </p>
+  <div class="info-box">
+    <p>📸 <em>Screenshot: Calendar for June 2025 showing red "overdue" chips on past dates, yellow "due soon" chips on upcoming dates, and a task detail popup.</em></p>
+  </div>
+
+  <div class="subsection-title">5.3 XML File Samples</div>
+
+  <div class="sub2-title">users.xml</div>
+  <div class="code-block">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;users&gt;
+  &lt;user id="user-dee3f2bc"&gt;
+    &lt;username&gt;admin&lt;/username&gt;
+    &lt;password&gt;$2a$10$ieD2wZbUeiuQvD.97L6zi.t/Fh9CgXPUC53fFOgQ9Lui9gQCopCf6&lt;/password&gt;
+    &lt;role&gt;admin&lt;/role&gt;
+    &lt;email&gt;admin@monkihub.local&lt;/email&gt;
+    &lt;createdAt&gt;2026-05-06T02:28:54.406Z&lt;/createdAt&gt;
+    &lt;isSuperAdmin&gt;true&lt;/isSuperAdmin&gt;
+  &lt;/user&gt;
+  &lt;user id="user-c35288a2"&gt;
+    &lt;username&gt;jed&lt;/username&gt;
+    &lt;password&gt;$2a$10$WBvFA27H.Ks1W1L2GjB5xez270HvR6jZ63tRzrJEnl2SO3uo/b412&lt;/password&gt;
+    &lt;role&gt;user&lt;/role&gt;
+    &lt;email&gt;jed@gmail.com&lt;/email&gt;
+    &lt;createdAt&gt;2026-05-06T02:29:59.603Z&lt;/createdAt&gt;
+  &lt;/user&gt;
+&lt;/users&gt;</div>
+
+  <div class="sub2-title">messages.xml</div>
+  <div class="code-block">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;messages&gt;
+  &lt;message id="msg-a1b2c3d4"&gt;
+    &lt;sender&gt;admin&lt;/sender&gt;
+    &lt;receiver&gt;jed&lt;/receiver&gt;
+    &lt;content&gt;Hey Jed, please complete the landing page task by Friday.&lt;/content&gt;
+    &lt;room&gt;admin:jed&lt;/room&gt;
+    &lt;timestamp&gt;2025-06-01T09:15:00.000Z&lt;/timestamp&gt;
+  &lt;/message&gt;
+  &lt;message id="msg-e5f6g7h8"&gt;
+    &lt;sender&gt;jed&lt;/sender&gt;
+    &lt;receiver&gt;admin&lt;/receiver&gt;
+    &lt;content&gt;Got it! I'll have it done by Thursday.&lt;/content&gt;
+    &lt;room&gt;admin:jed&lt;/room&gt;
+    &lt;timestamp&gt;2025-06-01T09:17:30.000Z&lt;/timestamp&gt;
+  &lt;/message&gt;
+&lt;/messages&gt;</div>
+
+  <div class="sub2-title">tasks.xml</div>
+  <div class="code-block">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;tasks&gt;
+  &lt;task id="task-a1b2c3d4"&gt;
+    &lt;title&gt;Design landing page mockup&lt;/title&gt;
+    &lt;description&gt;Create Figma wireframes for the new landing page&lt;/description&gt;
+    &lt;assignee&gt;jed&lt;/assignee&gt;
+    &lt;priority&gt;high&lt;/priority&gt;
+    &lt;status&gt;pending-review&lt;/status&gt;
+    &lt;dueDate&gt;2025-06-15&lt;/dueDate&gt;
+    &lt;createdAt&gt;2025-06-01T08:00:00.000Z&lt;/createdAt&gt;
+    &lt;submittedAt&gt;2025-06-10T14:30:00.000Z&lt;/submittedAt&gt;
+    &lt;proof&gt;data:image/png;base64,iVBORw0KGgo...&lt;/proof&gt;
+  &lt;/task&gt;
+&lt;/tasks&gt;</div>
+
+  <div class="sub2-title">logs.xml</div>
+  <div class="code-block">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;logs&gt;
+  &lt;log id="log-001"&gt;
+    &lt;action&gt;USER_LOGIN&lt;/action&gt;
+    &lt;actor&gt;admin&lt;/actor&gt;
+    &lt;detail&gt;admin logged in&lt;/detail&gt;
+    &lt;timestamp&gt;2025-06-01T08:00:00.000Z&lt;/timestamp&gt;
+  &lt;/log&gt;
+  &lt;log id="log-002"&gt;
+    &lt;action&gt;TASK_CREATED&lt;/action&gt;
+    &lt;actor&gt;admin&lt;/actor&gt;
+    &lt;detail&gt;Task "Design landing page mockup" assigned to @jed&lt;/detail&gt;
+    &lt;timestamp&gt;2025-06-01T08:05:00.000Z&lt;/timestamp&gt;
+  &lt;/log&gt;
+  &lt;log id="log-003"&gt;
+    &lt;action&gt;TASK_APPROVED&lt;/action&gt;
+    &lt;actor&gt;admin&lt;/actor&gt;
+    &lt;detail&gt;Task "Design landing page mockup" approved&lt;/detail&gt;
+    &lt;timestamp&gt;2025-06-10T15:00:00.000Z&lt;/timestamp&gt;
+  &lt;/log&gt;
+&lt;/logs&gt;</div>
+
+  <div class="subsection-title">5.4 XSLT Output Samples</div>
+
+  <div class="sub2-title">messages.xslt — Transformed Output (HTML Table)</div>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Sender</th>
+      <th>Receiver</th>
+      <th>Content</th>
+      <th>Timestamp</th>
+    </tr>
+    <tr>
+      <td>msg-e5f6g7h8</td>
+      <td><strong>jed</strong></td>
+      <td>admin</td>
+      <td>Got it! I'll have it done by Thursday.</td>
+      <td>2025-06-01T09:17:30.000Z</td>
+    </tr>
+    <tr>
+      <td>msg-a1b2c3d4</td>
+      <td><strong>admin</strong></td>
+      <td>jed</td>
+      <td>Hey Jed, please complete the landing page task by Friday.</td>
+      <td>2025-06-01T09:15:00.000Z</td>
+    </tr>
+  </table>
+  <p style="font-size:9pt; color:#888; margin-top:4px;">↑ Sorted by timestamp descending (newest first) via <span class="code-inline">xsl:sort select="timestamp" order="descending"</span></p>
+
+  <div class="sub2-title">tasks.xslt — Transformed Output (HTML Table)</div>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Assignee</th>
+      <th>Status</th>
+      <th>Priority</th>
+      <th>Due Date</th>
+    </tr>
+    <tr>
+      <td>task-a1b2c3d4</td>
+      <td>Design landing page mockup</td>
+      <td>@jed</td>
+      <td><span class="badge badge-yellow">⏳ Pending Review</span></td>
+      <td><span class="badge badge-red">🔴 High</span></td>
+      <td>2025-06-15</td>
+    </tr>
+  </table>
+  <p style="font-size:9pt; color:#888; margin-top:4px;">↑ Row class applied via <span class="code-inline">xsl:attribute name="class"</span> based on task status</p>
+
+  <div class="footer">
+    <p>MonkiHub System Documentation &nbsp;·&nbsp; Web-Based Systems Final Project &nbsp;·&nbsp; 2025</p>
+    <p style="margin-top:4px;">Built with Node.js · Apache Kafka · XML/XSLT · Socket.IO · Deployed on Render</p>
+  </div>
+</div>
+
+</body>
+</html>
