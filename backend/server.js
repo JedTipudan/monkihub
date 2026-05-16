@@ -12,8 +12,10 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const path = require('path');
 const { initXmlFiles } = require('./services/xmlService');
-const { initKafka } = require('./services/brokerService');
+const { initKafka, subscribeInMemory, isKafkaAvailable, getTopic } = require('./services/brokerService');
 const { initCloudinary } = require('./services/cloudinaryService');
+const MessageModel = require('./models/MessageModel');
+const LogModel = require('./models/LogModel');
 
 // ══════════════════════════════════════════════════════
 // ── Security & Rate Limiting Middleware ──
@@ -167,14 +169,6 @@ io.on('connection', (socket) => {
     socket.join(room);
   });
 
-  // Kafka consumer connects here to deliver processed messages
-  socket.on('consumer:deliver', (msg) => {
-    console.log(`[CONSUMER:DELIVER] Delivering ${msg.sender} → ${msg.receiver}: "${msg.content}"`);
-    io.to(`user:${msg.receiver}`).emit('message:new', msg);
-    io.to(`user:${msg.sender}`).emit('message:new', msg);
-    console.log(`[CONSUMER:DELIVER] Emitted to user:${msg.receiver} and user:${msg.sender}`);
-  });
-
   socket.on('disconnect', () => {
     if (socket.username && userSockets[socket.username]) {
       userSockets[socket.username].delete(socket.id);
@@ -185,8 +179,65 @@ io.on('connection', (socket) => {
 // ══════════════════════════════════════════════════════
 // ── Server Initialization ──
 // ══════════════════════════════════════════════════════
+async function startEmbeddedConsumer() {
+  if (!isKafkaAvailable()) {
+    // In-memory fallback: subscribe directly
+    subscribeInMemory(async (raw) => {
+      try {
+        const msg = JSON.parse(raw);
+        const saved = await MessageModel.create({ sender: msg.sender, receiver: msg.receiver, content: msg.content, room: msg.room });
+        io.to(`user:${saved.receiver}`).emit('message:new', saved);
+        io.to(`user:${saved.sender}`).emit('message:new', saved);
+      } catch (err) { console.error('[EMBEDDED CONSUMER] Error:', err.message); }
+    });
+    console.log('✅ Embedded message consumer ready (in-memory mode)');
+    return;
+  }
+
+  const { Kafka } = require('kafkajs');
+  const KAFKA_BROKER = process.env.KAFKA_BROKER || '';
+  const KAFKA_USERNAME = process.env.KAFKA_USERNAME || '';
+  const KAFKA_PASSWORD = process.env.KAFKA_PASSWORD || '';
+  const TOPIC = getTopic();
+  const isLocal = KAFKA_BROKER.includes('localhost') || KAFKA_BROKER.includes('127.0.0.1');
+  const kafkaConfig = { clientId: 'monkihub-embedded-consumer', brokers: [KAFKA_BROKER] };
+  if (!isLocal && KAFKA_USERNAME && KAFKA_PASSWORD) {
+    kafkaConfig.ssl = true;
+    kafkaConfig.sasl = { mechanism: 'scram-sha-256', username: KAFKA_USERNAME, password: KAFKA_PASSWORD };
+  }
+  const kafka = new Kafka(kafkaConfig);
+  const consumer = kafka.consumer({ groupId: 'monkihub-embedded-group' });
+  try {
+    await consumer.connect();
+    await consumer.subscribe({ topic: TOPIC, fromBeginning: false });
+    await consumer.run({
+      eachMessage: async ({ message }) => {
+        try {
+          const msg = JSON.parse(message.value.toString());
+          const saved = await MessageModel.create({ sender: msg.sender, receiver: msg.receiver, content: msg.content, room: msg.room });
+          io.to(`user:${saved.receiver}`).emit('message:new', saved);
+          io.to(`user:${saved.sender}`).emit('message:new', saved);
+          await LogModel.create({ action: 'MESSAGE_CONSUMED', actor: 'embedded-consumer', detail: `${msg.sender} → ${msg.receiver}` });
+        } catch (err) { console.error('[EMBEDDED CONSUMER] Process error:', err.message); }
+      }
+    });
+    console.log(`✅ Embedded Kafka consumer connected to topic: ${TOPIC}`);
+  } catch (err) {
+    console.error('⚠️  Embedded Kafka consumer failed, falling back to in-memory:', err.message);
+    subscribeInMemory(async (raw) => {
+      try {
+        const msg = JSON.parse(raw);
+        const saved = await MessageModel.create({ sender: msg.sender, receiver: msg.receiver, content: msg.content, room: msg.room });
+        io.to(`user:${saved.receiver}`).emit('message:new', saved);
+        io.to(`user:${saved.sender}`).emit('message:new', saved);
+      } catch (e) { console.error('[EMBEDDED CONSUMER FALLBACK] Error:', e.message); }
+    });
+  }
+}
+
 initXmlFiles().then(async () => {
   await initKafka();
+  await startEmbeddedConsumer();
   initCloudinary(); // Initialize Cloudinary for image uploads
   const PORT = process.env.PORT || 3000;
   server.listen(PORT, () => {

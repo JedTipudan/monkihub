@@ -750,10 +750,101 @@ body:not(.dark) .script-log { background: #1e2030; }
 /* â”€â”€ Collapse all script logs by default to save space â”€â”€ */
 .script-log { max-height: 160px; }
 
-/* -- User manager scrollable -- */
+/* ── User manager scrollable -- */
 #script-card-usermanager { display: flex; flex-direction: column; max-height: 600px; }
 .script-log-users { flex: 1; overflow-y: auto; background: var(--surface2); font-family: inherit; font-size: 0.85rem; color: var(--text); padding: 0; min-height: 0; }
 #script-log-usermanager { flex: 1; overflow-y: auto; min-height: 0; }
+
+/* ── Message Manager card ── */
+#script-card-msgmanager { display: flex; flex-direction: column; max-height: 620px; }
+#script-log-msgmanager  { flex: 1; overflow-y: auto; min-height: 0; background: var(--surface2); font-family: inherit; font-size: 0.85rem; color: var(--text); padding: 0; }
+
+/* ── Chat warning bar ── */
+#chat-warning-bar {
+  flex-shrink: 0;
+  margin: 0;
+  animation: warningSlideDown .25s cubic-bezier(.4,0,.2,1);
+}
+@keyframes warningSlideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cwb-inner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px;
+  font-size: 0.83rem; font-weight: 500;
+  border-bottom: 2px solid;
+}
+.cwb-inner.strike {
+  background: rgba(245,158,11,0.13);
+  border-color: #f59e0b;
+  color: #fcd34d;
+}
+.cwb-inner.muted {
+  background: rgba(239,68,68,0.13);
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+.cwb-icon { font-size: 1.3rem; flex-shrink: 0; }
+.cwb-text { flex: 1; line-height: 1.4; }
+.cwb-text strong { display: block; font-size: 0.88rem; margin-bottom: 2px; }
+.cwb-text span { font-size: 0.78rem; opacity: .85; }
+.cwb-dots { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.cwb-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.25);
+  transition: background .3s;
+}
+.cwb-close {
+  background: none; border: none; color: inherit;
+  cursor: pointer; font-size: 1.1rem; opacity: .6;
+  padding: 0 0 0 6px; flex-shrink: 0;
+}
+.cwb-close:hover { opacity: 1; }
+.mm-terminal {
+  display: flex; flex-direction: column; height: 100%;
+}
+.mm-terminal-bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; background: #161b27; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.mm-terminal-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.mm-terminal-title { font-size: 0.72rem; color: #64748b; margin-left: 4px; font-family: monospace; }
+.mm-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
+}
+.mm-tab {
+  padding: 9px 18px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  color: var(--text-muted); border-bottom: 2px solid transparent; transition: all .15s;
+  background: none; border-top: none; border-left: none; border-right: none;
+}
+.mm-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.mm-tab:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.03); }
+.mm-pane { display: none; flex: 1; overflow-y: auto; padding: 14px; min-height: 0; }
+.mm-pane.active { display: block; }
+
+/* word filter tags */
+.wf-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.35); border-radius: 20px;
+  font-size: 0.75rem; color: var(--danger); font-family: monospace;
+}
+.wf-tag button {
+  background: none; border: none; color: var(--danger); cursor: pointer;
+  font-size: 0.85rem; padding: 0; line-height: 1; opacity: 0.7;
+}
+.wf-tag button:hover { opacity: 1; }
+.wf-add-row {
+  display: flex; gap: 8px; margin-bottom: 12px;
+}
+.wf-add-row input {
+  flex: 1; padding: 7px 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-size: 0.82rem;
+}
+.wf-add-row input:focus { outline: none; border-color: var(--accent); }
+.wf-tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* â”€â”€ Script card compact when minimized â”€â”€ */
 .script-card.minimized { margin-bottom: 0; }

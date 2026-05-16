@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 
 const SCRIPTS = {
-  consumer: { label: 'Message Consumer', file: 'consumer.js', icon: '📨', hideFile: true },
+  msgmanager: { label: 'Message Manager', file: null, icon: '💬', hideFile: true, virtual: true },
   notifier: { label: 'Auto Notifier',    file: 'notifier.js', icon: '🔔', hideFile: true },
   archiver: { label: 'Auto Archiver',    file: 'archiver.js', icon: '🗂',  hideFile: true },
   reporter: { label: 'Report Generator', file: 'reporter.js', icon: '📊', hideFile: true, persistent: true },
@@ -79,7 +79,7 @@ const ScriptController = {
 };
 
 function isConsumerRunning() {
-  return !!running['consumer'];
+  return true; // Consumer is now embedded in the server
 }
 
 module.exports = { ...ScriptController, isConsumerRunning };

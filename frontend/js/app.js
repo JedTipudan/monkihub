@@ -190,27 +190,20 @@ function initSocket() {
     }
 
     // At this point: msg.sender is NOT me, and msg.receiver IS me
-    console.log('[message:new] Message FOR ME from:', msg.sender);
-    
     const chatOpen = document.getElementById('panel-chat').classList.contains('active');
     const myRoom = chatTarget ? [currentUser.username, chatTarget].sort().join(':') : null;
     const isThisConvo = msg.room === myRoom;
 
-    // Always show notification for messages from others
-    console.log('[message:new] Showing notification');
-    unreadCounts[msg.sender] = (unreadCounts[msg.sender] || 0) + 1;
-    updateUnreadBadge(msg.sender);
-    updateChatNavBadge();
-    pushNotification({ type: 'message', title: msg.sender, body: msg.content, sender: msg.sender });
-
-    // Also append message if chat is open
     if (chatOpen && isThisConvo) {
-      console.log('[message:new] Chat is open, also appending message');
+      // Conversation is open - just append, no notification or badge
       appendMessage(msg);
-      // Clear the unread count since we're viewing it
-      unreadCounts[msg.sender] = 0;
+      localStorage.setItem('mh_last_check_' + currentUser.username, new Date().toISOString());
+    } else {
+      // Conversation not open - show notification and badge
+      unreadCounts[msg.sender] = (unreadCounts[msg.sender] || 0) + 1;
       updateUnreadBadge(msg.sender);
       updateChatNavBadge();
+      pushNotification({ type: 'message', title: msg.sender, body: msg.content, sender: msg.sender });
     }
 
     if (document.getElementById('panel-dashboard').classList.contains('active')) loadDashboard();
@@ -939,18 +932,105 @@ function appendMessage(msg, scroll = true) {
 async function sendMessage() {
   if (!chatTarget) return;
   const input = document.getElementById('chat-input');
+  const btn = document.getElementById('send-btn');
   const content = input.value.trim();
   if (!content) return;
   input.value = '';
+  if (btn) btn.disabled = true;
   try {
     const result = await apiCall('POST', '/messages', { content, receiver: chatTarget });
-    if (result.status === 'delivered') {
-      appendMessage({ sender: currentUser.username, receiver: chatTarget, content, room: [currentUser.username, chatTarget].sort().join(':'), timestamp: new Date().toISOString() });
+    if (result.warning) {
+      if (result.warning.type === 'muted') {
+        showChatWarning('muted', result.warning.message);
+        startMuteCountdown(btn, 5 * 60);
+        return;
+      }
+      showChatWarning('strike', result.warning.message, result.warning.strikes, result.warning.max);
     }
   } catch (err) {
+    // Check if it's a mute error from server (user tried to send while already muted)
+    const muteMatch = err.message.match(/(\d+)m (\d+)s/);
+    if (muteMatch) {
+      const totalSecs = parseInt(muteMatch[1]) * 60 + parseInt(muteMatch[2]);
+      showChatWarning('muted', err.message);
+      startMuteCountdown(btn, totalSecs);
+      return;
+    }
     showToast(err.message, 'error');
     input.value = content;
   }
+  setTimeout(() => { if (btn) btn.disabled = false; }, 5000);
+}
+
+function startMuteCountdown(btn, totalSecs) {
+  if (!btn) return;
+  btn.disabled = true;
+  let remaining = totalSecs;
+  const originalText = btn.textContent;
+  const tick = setInterval(() => {
+    remaining--;
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    btn.textContent = m > 0 ? `Muted ${m}m ${s}s` : `Muted ${s}s`;
+    if (remaining <= 0) {
+      clearInterval(tick);
+      btn.disabled = false;
+      btn.textContent = originalText;
+      removeChatWarning();
+    }
+  }, 1000);
+}
+
+function showChatWarning(type, message, strikes, max) {
+  const bar = document.getElementById('chat-warning-bar');
+  if (!bar) return;
+
+  const isMuted = type === 'muted';
+
+  // Build strike dots
+  let dotsHtml = '';
+  if (!isMuted && strikes && max) {
+    dotsHtml = '<div class="cwb-dots">';
+    for (let i = 1; i <= max; i++) {
+      const filled = i <= strikes;
+      const color = filled
+        ? (strikes === max - 1 ? '#ef4444' : '#f59e0b')
+        : 'transparent';
+      dotsHtml += `<div class="cwb-dot" style="background:${color};border-color:${filled ? color : 'rgba(255,255,255,0.3)'}"></div>`;
+    }
+    dotsHtml += '</div>';
+  }
+
+  const title = isMuted
+    ? '\uD83D\uDD07 You are muted for 5 minutes'
+    : `\u26A0\uFE0F Warning ${strikes}/${max} \u2014 Bad language detected`;
+
+  bar.innerHTML = `
+    <div class="cwb-inner ${isMuted ? 'muted' : 'strike'}">
+      <span class="cwb-icon">${isMuted ? '\uD83D\uDD07' : '\u26A0\uFE0F'}</span>
+      <div class="cwb-text">
+        <strong>${escHtml(title)}</strong>
+        <span>${escHtml(message)}</span>
+      </div>
+      ${dotsHtml}
+      ${!isMuted ? '<button class="cwb-close" onclick="removeChatWarning()">&times;</button>' : ''}
+    </div>`;
+
+  bar.style.display = 'block';
+
+  // Auto-dismiss strike warnings after 6s
+  if (!isMuted) {
+    clearTimeout(bar._autoHide);
+    bar._autoHide = setTimeout(removeChatWarning, 6000);
+  }
+}
+
+function removeChatWarning() {
+  const bar = document.getElementById('chat-warning-bar');
+  if (!bar) return;
+  clearTimeout(bar._autoHide);
+  bar.style.display = 'none';
+  bar.innerHTML = '';
 }
 
 // Check for unread messages from all users
@@ -1097,8 +1177,10 @@ function renderScripts() {
     const minimized = !!scriptMinimized[name];
     const isReporter = name === 'reporter';
     const isUserManager = name === 'usermanager';
-    const logContent = isUserManager
-      ? '<span class="script-log-empty">Click Start to load all users.</span>'
+    const isMsgManager = name === 'msgmanager';
+    const isVirtual = isUserManager || isMsgManager;
+    const logContent = isVirtual
+      ? '<span class="script-log-empty">Click Start to load.</span>'
       : s.logs.length
         ? s.logs.map(function(l) { return '<div>' + escHtml(l) + '</div>'; }).join('')
         : '<span class="script-log-empty">No output yet - start the script to see logs here.</span>';
@@ -1113,11 +1195,11 @@ function renderScripts() {
         '<div class="script-actions">' +
           (isReporter ? '<button class="btn-report" onclick="openReport()" title="View Report">&#128196; Report</button>' : '') +
           '<button class="btn-run" id="btn-run-' + name + '" onclick="startScript(\'' + name + '\')"' + (s.running ? ' disabled' : '') + '>&#9654; Start</button>' +
-          '<button class="btn-stop" id="btn-stop-' + name + '" onclick="stopScript(\'' + name + '\')"' + (!s.running || isUserManager ? ' disabled' : '') + '>&#9632; Stop</button>' +
+          '<button class="btn-stop" id="btn-stop-' + name + '" onclick="stopScript(\'' + name + '\')"' + (!s.running || isVirtual ? ' disabled' : '') + '>&#9632; Stop</button>' +
           '<button class="btn-minimize" onclick="toggleScriptMinimize(\'' + name + '\')" title="' + (minimized ? 'Expand' : 'Minimize') + '">' + (minimized ? '&#9660;' : '&#9650;') + '</button>' +
         '</div>' +
       '</div>' +
-      '<div class="' + (isUserManager ? 'script-log-users' : 'script-log') + '" id="script-log-' + name + '" style="' + (minimized ? 'display:none' : '') + '">' +
+      '<div class="' + (isVirtual ? 'script-log-users' : 'script-log') + '" id="script-log-' + name + '" style="' + (minimized ? 'display:none' : '') + '">' +
         logContent +
       '</div>' +
     '</div>';
@@ -1198,6 +1280,7 @@ function setScriptRunning(name, isRunning) {
 
 async function startScript(name) {
   if (name === 'usermanager') { runUserManager(); return; }
+  if (name === 'msgmanager') { runMsgManager(); return; }
   // Auto-expand log when starting
   if (scriptMinimized[name]) toggleScriptMinimize(name);
   try {
@@ -1211,6 +1294,150 @@ async function stopScript(name) {
     await apiCall('POST', `/scripts/stop/${name}`);
     showToast(`${scriptsData[name]?.label} stopped`, 'success');
   } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ── Message Manager Script Card ───────────────────────────────────────
+async function runMsgManager() {
+  const log = document.getElementById('script-log-msgmanager');
+  const runBtn = document.getElementById('btn-run-msgmanager');
+  const statusEl = document.getElementById('script-status-msgmanager');
+  if (!log) return;
+  runBtn.disabled = true;
+  statusEl.innerHTML = '&#9679; Running';
+  statusEl.className = 'script-status running';
+
+  // Build terminal shell immediately
+  const tabs = currentUser.isSuperAdmin
+    ? [{ id: 'mm-ban', label: '&#128683; Ban Manager' }, { id: 'mm-words', label: '&#128683; Word Filter' }]
+    : [{ id: 'mm-ban', label: '&#128683; Ban Manager' }];
+
+  log.innerHTML =
+    '<div class="mm-terminal">' +
+      '<div class="mm-terminal-bar">' +
+        '<div class="mm-terminal-dot" style="background:#ef4444"></div>' +
+        '<div class="mm-terminal-dot" style="background:#f59e0b"></div>' +
+        '<div class="mm-terminal-dot" style="background:#10b981"></div>' +
+        '<span class="mm-terminal-title">MonkiHub — Message Manager</span>' +
+      '</div>' +
+      '<div class="mm-tabs">' +
+        tabs.map((t, i) => '<button class="mm-tab' + (i === 0 ? ' active' : '') + '" onclick="mmSwitchTab(\'' + t.id + '\')">' + t.label + '</button>').join('') +
+      '</div>' +
+      '<div id="mm-ban" class="mm-pane active"><div style="padding:20px;text-align:center;color:#64748b;font-size:0.8rem">Loading...</div></div>' +
+      (currentUser.isSuperAdmin ? '<div id="mm-words" class="mm-pane"><div style="padding:20px;text-align:center;color:#64748b;font-size:0.8rem">Loading...</div></div>' : '') +
+    '</div>';
+
+  try {
+    const requests = [apiCall('GET', '/auth/list'), apiCall('GET', '/messages/banned')];
+    if (currentUser.isSuperAdmin) requests.push(apiCall('GET', '/messages/wordfilter'));
+    const [usersRes, bannedRes, wordRes] = await Promise.all(requests);
+    const bannedSet = new Set(bannedRes.banned || []);
+    const others = usersRes.filter(u => u.username !== currentUser.username && !u.isSuperAdmin);
+
+    // ── Ban Manager pane ──
+    const banPane = document.getElementById('mm-ban');
+    if (banPane) {
+      const rows = others.map(u => {
+        const isBanned = bannedSet.has(u.username);
+        return '<tr>' +
+          '<td><strong>' + escHtml(u.username) + '</strong></td>' +
+          '<td><span class="role-tag ' + (u.role === 'admin' ? 'admin' : '') + '">' + u.role + '</span></td>' +
+          '<td><span style="color:' + (isBanned ? 'var(--danger)' : 'var(--success)') + ';font-weight:600">' + (isBanned ? '&#128683; Banned' : '&#10003; Active') + '</span></td>' +
+          '<td><button class="' + (isBanned ? 'btn-restore' : 'btn-delete-user') + '" onclick="mmToggleBan(\'' + escHtml(u.username) + '\', ' + isBanned + ')">' + (isBanned ? 'Unban' : 'Ban') + '</button></td>' +
+        '</tr>';
+      }).join('');
+      banPane.innerHTML =
+        '<div style="padding:10px 14px;font-size:0.75rem;color:#64748b;border-bottom:1px solid var(--border);background:var(--surface)">' +
+          '&#9432; Banned users cannot send messages. All users have a 5-second cooldown between messages.' +
+        '</div>' +
+        '<table class="um-table">' +
+          '<thead><tr><th>Username</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>' +
+          '<tbody>' + (rows || '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:20px">No users found</td></tr>') + '</tbody>' +
+        '</table>';
+    }
+
+    // ── Word Filter pane (super admin only) ──
+    if (currentUser.isSuperAdmin && wordRes) {
+      mmRenderWordPane(wordRes.words);
+    }
+  } catch (err) {
+    log.innerHTML = '<div style="padding:16px;color:var(--danger);font-size:0.82rem">&#10060; ' + escHtml(err.message) + '</div>';
+  }
+
+  statusEl.innerHTML = '&#9675; Stopped';
+  statusEl.className = 'script-status';
+  runBtn.disabled = false;
+}
+
+function mmSwitchTab(id) {
+  document.querySelectorAll('.mm-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.mm-pane').forEach(p => p.classList.remove('active'));
+  const pane = document.getElementById(id);
+  if (pane) pane.classList.add('active');
+  // match tab button by onclick content
+  document.querySelectorAll('.mm-tab').forEach(t => {
+    if (t.getAttribute('onclick') && t.getAttribute('onclick').includes(id)) t.classList.add('active');
+  });
+}
+
+function mmRenderWordPane(words) {
+  const pane = document.getElementById('mm-words');
+  if (!pane) return;
+  pane.innerHTML =
+    '<div style="padding:10px 14px;font-size:0.75rem;color:#64748b;border-bottom:1px solid var(--border);background:var(--surface)">' +
+      '&#9432; Banned words are replaced with *** in all messages. Case-insensitive, whole-word match.' +
+    '</div>' +
+    '<div style="padding:14px">' +
+      '<div class="wf-add-row">' +
+        '<input type="text" id="wf-new-word" placeholder="Type a word to ban..." onkeydown="if(event.key===\'Enter\')addBannedWord()"/>' +
+        '<button class="btn-run" style="white-space:nowrap;padding:7px 14px" onclick="addBannedWord()">+ Add</button>' +
+      '</div>' +
+      '<div class="wf-tags-wrap" id="wf-word-list">' +
+        (words.length
+          ? words.map(w => '<span class="wf-tag">' + escHtml(w) + '<button onclick="removeBannedWord(\'' + escHtml(w) + '\')" title="Remove">&times;</button></span>').join('')
+          : '<span style="color:#64748b;font-size:0.8rem">No banned words yet.</span>') +
+      '</div>' +
+    '</div>';
+}
+
+async function mmToggleBan(username, isBanned) {
+  try {
+    if (isBanned) {
+      await apiCall('POST', '/messages/unban/' + username);
+      showToast(username + ' unbanned.', 'success');
+    } else {
+      await apiCall('POST', '/messages/ban/' + username);
+      showToast(username + ' banned from messaging.', 'success');
+    }
+    runMsgManager();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function addBannedWord() {
+  const input = document.getElementById('wf-new-word');
+  const word = input ? input.value.trim().toLowerCase() : '';
+  if (!word) return;
+  try {
+    const res = await apiCall('POST', '/messages/wordfilter', { word });
+    input.value = '';
+    showToast('"' + word + '" added to word filter.', 'success');
+    renderWordList(res.words);
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function removeBannedWord(word) {
+  try {
+    const res = await apiCall('DELETE', '/messages/wordfilter/' + encodeURIComponent(word));
+    showToast('"' + word + '" removed.', 'success');
+    renderWordList(res.words);
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+function renderWordList(words) {
+  const container = document.getElementById('wf-word-list');
+  if (!container) return;
+  container.innerHTML = words.length
+    ? words.map(w => '<span class="wf-tag">' + escHtml(w) + '<button onclick="removeBannedWord(\'' + escHtml(w) + '\')" title="Remove">&times;</button></span>').join('')
+    : '<span style="color:#64748b;font-size:0.8rem">No banned words yet.</span>';
 }
 
 // ── User Manager Script Card ───────────────────────────────────────────
