@@ -982,55 +982,82 @@ function startMuteCountdown(btn, totalSecs) {
 }
 
 function showChatWarning(type, message, strikes, max) {
-  const bar = document.getElementById('chat-warning-bar');
-  if (!bar) return;
-
+  removeChatWarning();
   const isMuted = type === 'muted';
 
   // Build strike dots
   let dotsHtml = '';
   if (!isMuted && strikes && max) {
-    dotsHtml = '<div class="cwb-dots">';
+    dotsHtml = '<div class="bw-dots">';
     for (let i = 1; i <= max; i++) {
       const filled = i <= strikes;
-      const color = filled
-        ? (strikes === max - 1 ? '#ef4444' : '#f59e0b')
-        : 'transparent';
-      dotsHtml += `<div class="cwb-dot" style="background:${color};border-color:${filled ? color : 'rgba(255,255,255,0.3)'}"></div>`;
+      const color = filled ? (strikes >= max - 1 ? '#ef4444' : '#f59e0b') : 'transparent';
+      const border = filled ? color : 'rgba(255,255,255,0.2)';
+      dotsHtml += `<div class="bw-dot" style="background:${color};border-color:${border}"></div>`;
     }
     dotsHtml += '</div>';
   }
 
-  const title = isMuted
-    ? '\uD83D\uDD07 You are muted for 5 minutes'
-    : `\u26A0\uFE0F Warning ${strikes}/${max} \u2014 Bad language detected`;
+  const emoji    = isMuted ? '\uD83D\uDD07' : (strikes === max - 1 ? '\uD83D\uDEA8' : '\u26A0\uFE0F');
+  const title    = isMuted ? 'You are muted for 5 minutes!' : `Warning ${strikes} of ${max}`;
+  const btnLabel = isMuted ? 'OK, I understand' : 'Got it';
+  const autoDismiss = isMuted ? 0 : 5000; // strike: 5s auto, muted: manual only
 
-  bar.innerHTML = `
-    <div class="cwb-inner ${isMuted ? 'muted' : 'strike'}">
-      <span class="cwb-icon">${isMuted ? '\uD83D\uDD07' : '\u26A0\uFE0F'}</span>
-      <div class="cwb-text">
-        <strong>${escHtml(title)}</strong>
-        <span>${escHtml(message)}</span>
+  // Extract the bad word from message for the pill badge
+  const wordMatch = message.match(/"([^"]+)"/);
+  const wordPill  = wordMatch
+    ? `<span class="bw-popup-word">${escHtml(wordMatch[1])}</span>`
+    : '';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'bw-popup-overlay';
+  overlay.id = 'bw-warning-overlay';
+  overlay.innerHTML = `
+    <div class="bw-popup ${isMuted ? 'muted' : 'strike'}">
+      <div class="bw-popup-top">
+        <div class="bw-popup-emoji">${emoji}</div>
+        <div class="bw-popup-title">${escHtml(title)}</div>
+        ${wordPill}
+        <div class="bw-popup-msg">${escHtml(message)}</div>
+        ${dotsHtml}
       </div>
-      ${dotsHtml}
-      ${!isMuted ? '<button class="cwb-close" onclick="removeChatWarning()">&times;</button>' : ''}
+      <div class="bw-progress">
+        <div class="bw-progress-fill" id="bw-progress-fill"></div>
+      </div>
+      <button class="bw-popup-btn" onclick="removeChatWarning()">${btnLabel}</button>
     </div>`;
 
-  bar.style.display = 'block';
+  document.body.appendChild(overlay);
 
-  // Auto-dismiss strike warnings after 6s
+  // Click backdrop to dismiss (strike only)
   if (!isMuted) {
-    clearTimeout(bar._autoHide);
-    bar._autoHide = setTimeout(removeChatWarning, 6000);
+    overlay.addEventListener('click', e => { if (e.target === overlay) removeChatWarning(); });
+  }
+
+  // Animate progress bar drain
+  if (autoDismiss > 0) {
+    const fill = document.getElementById('bw-progress-fill');
+    if (fill) {
+      fill.style.transition = `width ${autoDismiss}ms linear`;
+      requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = '0%'; }));
+    }
+    overlay._autoHide = setTimeout(removeChatWarning, autoDismiss);
+  } else {
+    const fill = document.getElementById('bw-progress-fill');
+    if (fill) fill.style.width = '0%';
   }
 }
 
 function removeChatWarning() {
+  const overlay = document.getElementById('bw-warning-overlay');
+  if (!overlay) return;
+  clearTimeout(overlay._autoHide);
+  overlay.style.opacity = '0';
+  overlay.style.transition = 'opacity .15s';
+  setTimeout(() => overlay.remove(), 150);
+  // Also clear the bar placeholder
   const bar = document.getElementById('chat-warning-bar');
-  if (!bar) return;
-  clearTimeout(bar._autoHide);
-  bar.style.display = 'none';
-  bar.innerHTML = '';
+  if (bar) { bar.style.display = 'none'; bar.innerHTML = ''; }
 }
 
 // Check for unread messages from all users

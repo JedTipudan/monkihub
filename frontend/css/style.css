@@ -760,47 +760,90 @@ body:not(.dark) .script-log { background: #1e2030; }
 #script-log-msgmanager  { flex: 1; overflow-y: auto; min-height: 0; background: var(--surface2); font-family: inherit; font-size: 0.85rem; color: var(--text); padding: 0; }
 
 /* ── Chat warning bar ── */
-#chat-warning-bar {
-  flex-shrink: 0;
-  margin: 0;
-  animation: warningSlideDown .25s cubic-bezier(.4,0,.2,1);
+#chat-warning-bar { display: none; }
+
+/* ── Bad word warning popup ── */
+.bw-popup-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
+  animation: bwFadeIn .18s ease;
 }
-@keyframes warningSlideDown {
-  from { opacity: 0; transform: translateY(-12px); }
-  to   { opacity: 1; transform: translateY(0); }
+@keyframes bwFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-.cwb-inner {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 18px;
-  font-size: 0.83rem; font-weight: 500;
-  border-bottom: 2px solid;
+.bw-popup {
+  width: 340px; max-width: 92vw;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  animation: bwPopIn .22s cubic-bezier(.34,1.56,.64,1);
 }
-.cwb-inner.strike {
-  background: rgba(245,158,11,0.13);
-  border-color: #f59e0b;
-  color: #fcd34d;
+@keyframes bwPopIn {
+  from { opacity: 0; transform: scale(.85) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
-.cwb-inner.muted {
-  background: rgba(239,68,68,0.13);
-  border-color: #ef4444;
-  color: #fca5a5;
+.bw-popup.strike { background: #1c1608; border: 1.5px solid #f59e0b; }
+.bw-popup.muted  { background: #1c0808; border: 1.5px solid #ef4444; }
+
+.bw-popup-top {
+  padding: 28px 24px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  text-align: center;
 }
-.cwb-icon { font-size: 1.3rem; flex-shrink: 0; }
-.cwb-text { flex: 1; line-height: 1.4; }
-.cwb-text strong { display: block; font-size: 0.88rem; margin-bottom: 2px; }
-.cwb-text span { font-size: 0.78rem; opacity: .85; }
-.cwb-dots { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-.cwb-dot {
-  width: 12px; height: 12px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.25);
-  transition: background .3s;
+.bw-popup-emoji { font-size: 3rem; line-height: 1; }
+.bw-popup-title {
+  font-size: 1.05rem; font-weight: 800; letter-spacing: .01em;
 }
-.cwb-close {
-  background: none; border: none; color: inherit;
-  cursor: pointer; font-size: 1.1rem; opacity: .6;
-  padding: 0 0 0 6px; flex-shrink: 0;
+.bw-popup.strike .bw-popup-title { color: #fcd34d; }
+.bw-popup.muted  .bw-popup-title { color: #fca5a5; }
+.bw-popup-word {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem; font-weight: 700; font-family: monospace;
+  letter-spacing: .05em;
 }
-.cwb-close:hover { opacity: 1; }
+.bw-popup.strike .bw-popup-word { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid #f59e0b; }
+.bw-popup.muted  .bw-popup-word { background: rgba(239,68,68,.15);  color: #f87171; border: 1px solid #ef4444; }
+.bw-popup-msg {
+  font-size: 0.82rem; color: #94a3b8; line-height: 1.5; padding: 0 4px;
+}
+
+/* strike dots */
+.bw-dots { display: flex; gap: 8px; margin-top: 4px; }
+.bw-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.15);
+  transition: background .3s, border-color .3s;
+}
+
+/* progress bar auto-dismiss */
+.bw-progress {
+  height: 3px;
+  background: rgba(255,255,255,.08);
+}
+.bw-progress-fill {
+  height: 100%; width: 100%;
+  transition: width linear;
+}
+.bw-popup.strike .bw-progress-fill { background: #f59e0b; }
+.bw-popup.muted  .bw-progress-fill { background: #ef4444; }
+
+/* dismiss button */
+.bw-popup-btn {
+  display: block; width: 100%;
+  padding: 13px;
+  border: none; border-top: 1px solid rgba(255,255,255,.07);
+  font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  transition: background .15s;
+}
+.bw-popup.strike .bw-popup-btn { background: rgba(245,158,11,.1); color: #fcd34d; }
+.bw-popup.strike .bw-popup-btn:hover { background: rgba(245,158,11,.2); }
+.bw-popup.muted  .bw-popup-btn { background: rgba(239,68,68,.1);  color: #fca5a5; }
+.bw-popup.muted  .bw-popup-btn:hover { background: rgba(239,68,68,.2); }
 .mm-terminal {
   display: flex; flex-direction: column; height: 100%;
 }
