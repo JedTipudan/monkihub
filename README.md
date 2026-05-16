@@ -1,43 +1,187 @@
 # 🐒 MonkiHub
 
-A full-stack team collaboration and task management platform built with Node.js (Express), vanilla HTML/CSS/JS, XML data storage, Socket.IO for real-time messaging, and **Apache Kafka** as the message broker.
+A full-stack team collaboration and task management platform built with Node.js (Express), vanilla HTML/CSS/JS, XML data storage, Socket.IO for real-time messaging, and **Apache Kafka** as the embedded message broker.
 
-**🌐 Live Demo**: [Your Render URL Here]
+**🌐 Live Demo**: [Your Render URL Here]  
+**📦 Repository**: https://github.com/JedTipudan/monkihub
 
 ---
 
-## 🚀 Quick Start (3 Commands!)
+## 🚀 How to Run (Step by Step)
 
-**Run MonkiHub 100% offline with local Kafka:**
+### Prerequisites — Install These First
+
+| Tool | Why | Download |
+|---|---|---|
+| **Node.js v18+** | Runs the backend server | https://nodejs.org |
+| **Docker Desktop** | Runs local Kafka broker | https://www.docker.com/products/docker-desktop |
+| **Git** | Clone the repo | https://git-scm.com |
+
+> Check versions: `node -v` should show `v18.x.x` or higher. `docker -v` should show a version number.
+
+---
+
+### Step 1 — Clone the Repository
+
+Open a terminal (VS Code terminal, Command Prompt, or PowerShell):
 
 ```bash
-# 1. Setup Kafka (one-time, ~2 min)
+git clone https://github.com/JedTipudan/monkihub.git
+cd monkihub
+```
+
+---
+
+### Step 2 — Install Dependencies
+
+```bash
+cd backend
+npm install
+```
+
+This installs all backend packages (Express, KafkaJS, Socket.IO, xml2js, etc.).
+
+---
+
+### Step 3 — Set Up Environment Variables
+
+Create the file `backend/.env` with the following content:
+
+```env
+PORT=3000
+JWT_SECRET=your_secret_key_here
+
+# Local Kafka (Docker) — leave USERNAME and PASSWORD blank for local
+KAFKA_BROKER=localhost:9092
+KAFKA_USERNAME=
+KAFKA_PASSWORD=
+KAFKA_TOPIC=monkihub_messages
+
+# Server URL
+SERVER_URL=http://localhost:3000
+
+# Cloudinary — for image uploads (get free account at cloudinary.com)
+CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+CLOUDINARY_API_KEY=your_api_key_here
+CLOUDINARY_API_SECRET=your_api_secret_here
+```
+
+> If you skip Cloudinary, image uploads (avatars, task proofs, payment proofs) will not work but everything else will.
+
+---
+
+### Step 4 — Start Kafka (One-Time Setup)
+
+Make sure **Docker Desktop is running** (whale icon in system tray), then run:
+
+```bash
+# From the project root (monkihub/)
 setup-kafka-docker.bat
+```
 
-# 2. Configure for localhost (one-time, 5 sec)
+This pulls and starts a local Kafka broker in Docker. Takes about 1–2 minutes the first time.
+
+Then configure it for localhost:
+
+```bash
 configure-local-kafka.bat
+```
 
-# 3. Start everything (daily use, 10 sec)
+> You only need to do Steps 4 once. After that, Docker remembers the Kafka container.
+
+---
+
+### Step 5 — Start the Server
+
+Open a terminal in the `backend/` folder:
+
+```bash
+cd backend
+node -r dotenv/config server.js
+```
+
+You should see:
+
+```
+============================================================
+🐒 MonkiHub Backend Server
+============================================================
+✅ Server running on port 3000
+✅ Embedded message consumer ready (in-memory mode)
+...
+```
+
+---
+
+### Step 6 — Open the App
+
+Open your browser and go to:
+
+```
+http://localhost:3000
+```
+
+Login with the default Super Admin account:
+
+| Username | Password | Role |
+|---|---|---|
+| `admin` | `admin` | Super Admin |
+
+---
+
+### Daily Usage (After First Setup)
+
+Every day you just need **one command** from the project root:
+
+```bash
 start-all-offline.bat
 ```
 
-**Open:** http://localhost:3000 🎉
+This starts Docker Kafka + the backend server automatically.
 
-**Prerequisites:** Docker Desktop must be installed.  
-**Download:** https://www.docker.com/products/docker-desktop/
+Then open `http://localhost:3000`.
 
-**📚 See:** `CHEAT_SHEET.txt` for all commands and `KAFKA_EXPLANATION.md` for course presentation.
+---
+
+### Running via VS Code Terminal
+
+1. Open VS Code
+2. Open the `monkihub` folder (`File → Open Folder`)
+3. Open the terminal (`Ctrl + `` ` ``)
+4. Run:
+
+```bash
+cd backend
+node -r dotenv/config server.js
+```
+
+> The Kafka consumer is now **embedded inside the server** — you do NOT need a second terminal for it anymore. Just one terminal is enough.
+
+---
+
+### Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `Cannot find module` error | Run `npm install` inside `backend/` |
+| Port 3000 already in use | Kill the process: `npx kill-port 3000` |
+| Kafka connection error | Make sure Docker Desktop is running, then run `test-kafka.bat` |
+| Messages not delivering | The embedded consumer handles this automatically — just restart the server |
+| Images not uploading | Check your Cloudinary credentials in `.env` |
+| `admin` login not working | Run `node resetAdminPassword.js` inside `backend/` |
 
 ---
 
 ## 🎯 Project Overview
 
 MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed for managers and remote teams. It enables:
+
 - Real-time task assignment and tracking
-- Direct messaging powered by **Apache Kafka** message broker
+- Direct messaging powered by **Apache Kafka** (embedded broker — no separate consumer process needed)
 - Proof-of-work submission and approval workflow
 - Payment request and processing system
 - Automated background scripts for notifications and reporting
+- Message moderation with word filter, user banning, and bad word strike system
 - Mobile-responsive design for on-the-go access
 
 **Target Users**: Managers/Admins and Virtual Assistants
@@ -46,20 +190,31 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 
 ## ✨ Key Features
 
-### 🔔 Real-Time Messaging with Kafka
+### 💬 Real-Time Messaging (Kafka — Embedded Consumer)
 - Direct messaging between users via **Apache Kafka** broker
-- Messages published to Kafka topic → consumer processes → delivers via Socket.IO
-- **If consumer is stopped → messages are NOT delivered** (demonstrates broker dependency)
+- Kafka consumer is **embedded inside the server** — no separate process needed
+- Messages published to Kafka topic → embedded consumer saves → delivers via Socket.IO
+- Falls back to in-memory broker automatically if Kafka is unavailable
 - Live notification system (bell icon + banners)
-- Unread message tracking per user
-- Mobile-friendly notification banners
+- Unread message tracking per user — notifications only appear when chat is **not open**
+- **5-second cooldown** between messages per user (enforced server-side + UI countdown)
 
-### 🔔 Task Assignment Notifications
-- Assigned user receives an **instant bell notification + banner** when admin creates a task for them
-- Notification is **targeted** — only the assignee is notified (not all users)
-- Shows task title, priority, and due date (if set) in the notification
-- Uses Socket.IO room targeting (`user:<username>`) for precise delivery
-- Admins do **not** receive noisy broadcast notifications on task creation
+### 🛡️ Message Moderation System
+- **Word Filter** — bad words are replaced with `***` in all messages
+  - Default list of 15+ profanity words pre-loaded
+  - Super Admin can add/remove custom words from the Message Manager panel
+  - Word list is **persisted to `data/bannedWords.json`** — survives server restarts
+- **Bad Word Strike System**
+  - Every message containing a banned word gives the sender **1 strike**
+  - **Strike 1** → animated popup warning: `⚠️ Warning 1 of 3 — "word"`
+  - **Strike 2** → popup warning: `⚠️ Warning 2 of 3 — "word"` (dots turn red)
+  - **Strike 3** → **5-minute mute** applied automatically: `🔇 You are muted for 5 minutes`
+  - Muted users cannot send messages — Send button shows live countdown (`Muted 4m 59s`)
+  - Strikes reset to 0 after mute expires
+- **User Ban** — Admin can permanently ban users from messaging
+- Warning popups are centered, animated modals with:
+  - Big emoji, word pill badge, strike dot indicators, progress bar drain
+  - Auto-dismiss after 5s for strike warnings, manual dismiss for mute
 
 ### 📋 Task Management
 - Kanban board (To Do, In Progress, Pending Review)
@@ -71,18 +226,24 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - Priority levels (High, Medium, Low)
 - Visual task status indicators and due date badges
 
+### 🔔 Task Assignment Notifications
+- Assigned user receives an **instant bell notification + banner** when admin creates a task
+- Notification is **targeted** — only the assignee is notified
+- Shows task title, priority, and due date in the notification
+
 ### 💰 Payment System
 - Payment request submission (GCash, Maya, Bank Transfer, PayPal)
 - Admin approval with proof of payment upload
 - Payment history tracking
 - Task completion statistics per user
 
-### ⚙️ Background Scripts
-- **Consumer**: Kafka topic subscriber — saves and delivers messages
-- **Notifier**: Auto-notification for new tasks
-- **Archiver**: Auto-archive old data (7+ days)
-- **Reporter**: HTML report generator with live file watching
-- **Script Manager**: Start/stop scripts from UI with live logs
+### ⚙️ Scripts Panel
+- **Message Manager** — Ban/unban users + Word Filter management (Super Admin only)
+- **Auto Notifier** — Polls tasks and sends system notifications
+- **Auto Archiver** — Moves old data (7+ days) to `archive.xml`
+- **Report Generator** — Generates HTML summary report with live file watching
+- **User Manager** — Create/delete users from the UI (Super Admin: create admins)
+- All scripts have a mini terminal log output in the UI
 
 ### 🗂️ XML Data Management
 - XML-based data storage (users, tasks, messages, payments, logs)
@@ -92,13 +253,9 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 
 ### 📸 Cloud-Based Image Storage
 - **Cloudinary integration** for scalable image storage
-- Profile avatar uploads
-- Task proof-of-work image uploads
-- Task reference image uploads
-- Payment proof screenshot uploads
+- Profile avatar, task proof, task reference, and payment proof uploads
 - Automatic image optimization and CDN delivery
-- **Requires internet connection** for uploads
-- Secure HTTPS URLs stored in XML database
+- Requires internet connection for uploads
 
 ### 📱 Mobile Responsive
 - Hamburger menu navigation
@@ -111,35 +268,21 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 - Role-based access (Super Admin / Admin / User)
 - User registration and authentication
 - Profile management with avatar upload
-- Admin user creation from UI (Super Admin only)
-- `/auth/list` endpoint accessible to all authenticated users (for chat)
 
 ### 📅 Calendar & Scheduling
 - Visual calendar with task due dates
 - Color-coded task status (overdue, due soon, on track, completed)
 - Monthly view with navigation
-- Quick task overview on calendar dates
-- Due date tracking and alerts
 - Upcoming due dates widget on dashboard
 
-### 🛡️ Security & DDoS Protection
-- **Multi-layer rate limiting** (500 req/15min global, 60 req/min API)
-- **Auto IP blacklisting** (50 failed attempts → 24hr ban)
-- **Request size limits** (10MB max)
-- **Suspicious pattern detection** (XSS, SQL injection, path traversal)
-- **Security headers** (Helmet.js — CSP, HSTS, XSS protection)
-- **CSP `script-src-attr`** allows inline event handlers (`onclick`, `oninput`, etc.)
-- **Socket.IO connection limits** (10 per IP)
-- **Password strength validation** with real-time indicator (min. fair strength required)
-- **Failed login tracking** with automatic lockout
-
-### 🔑 Password Strength Validation
-- Real-time strength meter (Weak / Fair / Good / Strong)
-- Requirements checklist (8+ chars, uppercase, lowercase, number, special char)
-- Password confirmation field with match indicator
-- Toggle password visibility button
-- Applied on registration and profile update
-- Minimum **fair** strength (3/5 criteria) required to submit
+### 🔒 Security & DDoS Protection
+- Multi-layer rate limiting (500 req/15min global, 60 req/min API)
+- Auto IP blacklisting (50 failed attempts → 24hr ban)
+- Request size limits (10MB max)
+- Suspicious pattern detection (XSS, SQL injection, path traversal)
+- Security headers (Helmet.js — CSP, HSTS, XSS protection)
+- Socket.IO connection limits (10 per IP)
+- Password strength validation with real-time indicator (min. fair strength required)
 
 ---
 
@@ -148,249 +291,76 @@ MonkiHub is a comprehensive VA (Virtual Assistant) management platform designed 
 ```
 MonkiHub/
 ├── backend/
-│   ├── controllers/          # Request handlers
+│   ├── controllers/
 │   │   ├── authController.js
 │   │   ├── taskController.js
-│   │   ├── messageController.js
+│   │   ├── messageController.js   # Word filter, ban, strike/mute system
 │   │   ├── paymentController.js
-│   │   ├── scriptController.js
+│   │   ├── scriptController.js    # Message Manager replaces consumer card
 │   │   ├── logController.js
 │   │   └── xmlController.js
-│   ├── models/               # Data models (XML operations)
+│   ├── models/
 │   │   ├── UserModel.js
 │   │   ├── TaskModel.js
 │   │   ├── MessageModel.js
 │   │   ├── PaymentModel.js
 │   │   └── LogModel.js
-│   ├── routes/               # API routes
+│   ├── routes/
 │   │   ├── authRoutes.js
 │   │   ├── taskRoutes.js
-│   │   ├── messageRoutes.js
+│   │   ├── messageRoutes.js       # Ban + word filter routes added
 │   │   ├── paymentRoutes.js
 │   │   ├── scriptRoutes.js
 │   │   ├── logRoutes.js
 │   │   └── xmlRoutes.js
-│   ├── services/             # Business logic
-│   │   ├── xmlService.js      # XML read/write + admin seed
-│   │   └── brokerService.js   # Kafka producer (Redpanda)
-│   ├── middleware/           # Auth & Security middleware
-│   │   ├── auth.js            # authenticate, requireAdmin, requireSuperAdmin
-│   │   ├── rateLimiter.js     # 8 rate limiter configurations
-│   │   └── security.js        # Helmet CSP, HPP, IP blacklist, pattern detection
-│   ├── data/                 # XML data storage
-│   │   ├── users.xml          # ✅ Tracked in Git (accounts persist on deploy)
+│   ├── services/
+│   │   ├── xmlService.js
+│   │   ├── brokerService.js       # Kafka producer + in-memory fallback
+│   │   └── cloudinaryService.js
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   ├── rateLimiter.js
+│   │   └── security.js
+│   ├── data/
+│   │   ├── users.xml              # ✅ Tracked in Git
 │   │   ├── tasks.xml
 │   │   ├── messages.xml
 │   │   ├── payments.xml
 │   │   ├── logs.xml
 │   │   ├── archive.xml
+│   │   ├── bannedWords.json       # ✅ Tracked in Git — persisted word filter
 │   │   └── report.html
-│   ├── xslt/                 # XSLT transformation files
+│   ├── xslt/
 │   │   ├── messages.xslt
 │   │   ├── tasks.xslt
 │   │   └── logs.xslt
-│   ├── scripts/              # Background automation scripts
-│   │   ├── consumer.js        # Kafka consumer — saves & delivers messages
-│   │   ├── notifier.js        # Auto task notifications
-│   │   ├── archiver.js        # Auto data archiving
-│   │   └── reporter.js        # HTML report generator
-│   ├── createAdmin.js        # Admin user creation script
-│   ├── promoteToAdmin.js     # User promotion script
-│   ├── makeSuperAdmin.js     # Upgrade user to Super Admin
-│   ├── resetAdminPassword.js # Reset admin password
-│   ├── server.js             # Main server file
-│   ├── .env                  # Environment variables (not committed)
+│   ├── scripts/
+│   │   ├── consumer.js            # Standalone consumer (kept for reference)
+│   │   ├── notifier.js
+│   │   ├── archiver.js
+│   │   └── reporter.js
+│   ├── server.js                  # Embedded Kafka consumer inside server
+│   ├── .env
 │   └── package.json
 ├── frontend/
-│   ├── index.html            # Main app interface
-│   ├── landing.html          # Landing/recruitment page
+│   ├── index.html
+│   ├── landing.html
 │   ├── css/
-│   │   ├── style.css          # Main app styles + password strength styles
-│   │   └── landing.css        # Landing page styles
+│   │   ├── style.css              # Warning popup styles added
+│   │   └── landing.css
 │   ├── js/
-│   │   ├── app.js             # Main app logic
-│   │   └── landing.js         # Landing page logic
+│   │   ├── app.js                 # Strike/mute UI, message manager, notification fix
+│   │   └── landing.js
 │   └── assets/
 │       └── logo.png
+├── setup-kafka-docker.bat         # One-time Kafka setup
+├── configure-local-kafka.bat      # Configure .env for localhost
+├── start-all-offline.bat          # Daily start command
+├── test-kafka.bat                 # Diagnose Kafka issues
 ├── .gitignore
-├── package.json              # Root package.json for deployment
+├── package.json
 └── README.md
 ```
-
----
-
-## Setup & Running
-
-### Prerequisites
-- Node.js v18+
-- **For Cloud Deployment:** Redpanda Cloud account (free) — or any Kafka-compatible broker
-- **For Offline/Local:** Docker Desktop (free)
-- Git (for deployment)
-
-### 🚀 Quick Start - Offline Mode (Recommended for Development)
-
-**Run MonkiHub 100% offline with local Kafka in 3 commands:**
-
-```bash
-# 1. Setup local Kafka (one-time, ~2 minutes)
-setup-kafka-docker.bat
-
-# 2. Configure for localhost (one-time, 5 seconds)
-configure-local-kafka.bat
-
-# 3. Start everything (daily use, 10 seconds)
-start-all-offline.bat
-```
-
-**That's it!** Open `http://localhost:3000` 🎉
-
-**What happens:**
-- Terminal 1: Backend Server (port 3000)
-- Terminal 2: Kafka Consumer (message processor)
-- Keep both windows open while using MonkiHub
-
-**Daily Usage:** Just run `start-all-offline.bat` (10 seconds)
-
-**Troubleshooting:**
-- Run `test-kafka.bat` to diagnose issues
-- Check Docker Desktop is running (whale icon in system tray)
-- See `CHEAT_SHEET.txt` for all commands
-- See `KAFKA_EXPLANATION.md` for course presentation details
-
----
-
-### Local Development (Cloud Kafka)
-
-```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/monkihub.git
-cd monkihub
-
-# Install backend dependencies
-cd backend
-npm install
-
-# Configure environment variables
-cp .env.example .env
-# Fill in your Kafka credentials in .env
-
-# Start the server
-node -r dotenv/config server.js
-```
-
-### Start the Kafka Consumer (Required for Chat)
-
-Open a **second terminal**:
-```bash
-cd backend
-node -r dotenv/config scripts/consumer.js
-```
-
-> ⚠️ **Chat will NOT work without the consumer running.** This is by design — it demonstrates the Kafka producer-consumer pattern.
-
-Server runs on `http://localhost:3000`
-
-### Environment Variables
-
-Create `backend/.env`:
-
-**For Local Kafka (Offline):**
-```
-PORT=3000
-JWT_SECRET=your_secret_key_here
-
-# Local Kafka (Docker)
-KAFKA_BROKER=localhost:9092
-KAFKA_USERNAME=
-KAFKA_PASSWORD=
-KAFKA_TOPIC=monkihub_messages
-
-# Server URL (for consumer Socket.IO connection)
-SERVER_URL=http://localhost:3000
-
-# Cloudinary (for cloud-based image storage)
-CLOUDINARY_CLOUD_NAME=your_cloud_name_here
-CLOUDINARY_API_KEY=your_api_key_here
-CLOUDINARY_API_SECRET=your_api_secret_here
-```
-
-**For Cloud Kafka (Production):**
-```
-PORT=3000
-JWT_SECRET=your_secret_key_here
-
-# Redpanda / Kafka
-KAFKA_BROKER=your-broker.redpanda.com:9092
-KAFKA_USERNAME=your-username
-KAFKA_PASSWORD=your-password
-KAFKA_TOPIC=monkihub_messages
-
-# Server URL (for consumer Socket.IO connection)
-SERVER_URL=http://localhost:3000
-
-# Cloudinary (for cloud-based image storage)
-CLOUDINARY_CLOUD_NAME=your_cloud_name_here
-CLOUDINARY_API_KEY=your_api_key_here
-CLOUDINARY_API_SECRET=your_api_secret_here
-```
-
-**Note:** The code automatically detects localhost and skips SSL/SASL authentication for Kafka.
-
-**Cloudinary Setup:** See `CLOUDINARY_SETUP.md` for detailed instructions on setting up cloud-based image storage.
-
-### Default Credentials
-
-| Username | Password | Role |
-|---|---|---|
-| admin | admin | Super Admin |
-
----
-
-## 🚀 Deployment
-
-### Data Persistence on Render
-
-- `users.xml` is **tracked in Git** — user accounts persist across deploys
-- `tasks.xml`, `messages.xml`, `payments.xml`, `logs.xml` are excluded from Git and reset on each deploy
-- To persist all data, use Render's **persistent disk** (paid feature)
-
-### Deploy to Render (Free)
-
-1. **Push to GitHub**:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/YOUR_USERNAME/monkihub.git
-   git push -u origin main
-   ```
-
-2. **Deploy on Render**:
-   - Go to https://render.com
-   - Sign up with GitHub
-   - Click **New +** → **Web Service**
-   - Connect your repository
-   - Configure:
-     - **Name**: monkihub
-     - **Build Command**: `npm install`
-     - **Start Command**: `npm start`
-     - **Instance Type**: Free
-   - Click **Create Web Service**
-
-3. **Add Environment Variables on Render**:
-   - Go to your service → **Environment** tab
-   - Add all variables from `.env`:
-     - `KAFKA_BROKER`
-     - `KAFKA_USERNAME`
-     - `KAFKA_PASSWORD`
-     - `KAFKA_TOPIC`
-     - `SERVER_URL` → your Render URL (e.g. `https://monkihub.onrender.com`)
-     - `JWT_SECRET`
-
-4. **Keep it Online 24/7** (Optional):
-   - Sign up at https://uptimerobot.com
-   - Add HTTP monitor with your Render URL
-   - Set interval to 5 minutes
 
 ---
 
@@ -399,28 +369,21 @@ CLOUDINARY_API_SECRET=your_api_secret_here
 ```
 User sends message
        ↓
+Bad word check → filter content → strike/mute check
+       ↓
 POST /api/messages
        ↓
 Published to Kafka topic (monkihub_messages)
        ↓
-consumer.js reads from Kafka topic
+Embedded consumer inside server.js reads from topic
        ↓
 Saves message to messages.xml
        ↓
 Emits via Socket.IO → receiver sees message
+(notification only fires if chat is NOT open)
 ```
 
-### Demo Concept (For Presentation)
-
-| Consumer Status | Chat Works? |
-|---|---|
-| ✅ Running | Messages delivered in real-time |
-| ❌ Stopped | Messages NOT delivered |
-
-**Stop the consumer** from Script Manager → try sending a message → nothing appears.  
-**Start the consumer** → messages flow again. ✅
-
-This demonstrates the **producer-consumer pattern** used in real-world systems like Slack, WhatsApp, and Discord.
+> If Kafka is unavailable, the system automatically falls back to an in-memory broker. Messages still deliver in real-time — no manual intervention needed.
 
 ---
 
@@ -442,7 +405,7 @@ This demonstrates the **producer-consumer pattern** used in real-world systems l
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | GET | /api/tasks | Yes | Get tasks (filtered by role) |
-| POST | /api/tasks | Admin | Create task (notifies assignee via Socket.IO) |
+| POST | /api/tasks | Admin | Create task |
 | PUT | /api/tasks/:id | Admin | Update task / set due date |
 | DELETE | /api/tasks/:id | Admin | Delete task |
 | POST | /api/tasks/:id/submit | Yes | Submit proof of work |
@@ -452,9 +415,15 @@ This demonstrates the **producer-consumer pattern** used in real-world systems l
 ### Messages
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| GET | /api/messages | Yes | Get messages |
+| GET | /api/messages | Yes | Get all messages |
 | GET | /api/messages/conversation/:user | Yes | Get conversation with a user |
-| POST | /api/messages | Yes | Publish message to Kafka |
+| POST | /api/messages | Yes | Send message (with filter + strike check) |
+| GET | /api/messages/banned | Admin | Get list of banned users |
+| POST | /api/messages/ban/:username | Admin | Ban user from messaging |
+| POST | /api/messages/unban/:username | Admin | Unban user |
+| GET | /api/messages/wordfilter | Super Admin | Get banned word list |
+| POST | /api/messages/wordfilter | Super Admin | Add a banned word |
+| DELETE | /api/messages/wordfilter/:word | Super Admin | Remove a banned word |
 
 ### Payments
 | Method | Endpoint | Auth | Description |
@@ -483,65 +452,28 @@ This demonstrates the **producer-consumer pattern** used in real-world systems l
 
 ---
 
-## Background Scripts
-
-### consumer.js — Kafka Message Consumer ⭐
-Subscribes to the Kafka topic `monkihub_messages`. For each message received:
-1. Saves to `messages.xml`
-2. Delivers to users via Socket.IO
-
-**⚠️ Chat requires this script to be running.**
-```bash
-cd backend
-node -r dotenv/config scripts/consumer.js
-```
-
-### notifier.js — Auto Notifier
-Polls `tasks.xml` every 5 seconds. Sends system messages when new tasks are created or completed.
-```bash
-node -r dotenv/config scripts/notifier.js
-```
-
-### archiver.js — Auto Archiver
-Moves tasks and messages older than 7 days into `archive.xml`.
-```bash
-node -r dotenv/config scripts/archiver.js
-```
-
-### reporter.js — Report Generator
-Generates an HTML summary report at `data/report.html` with task stats, payroll data, and activity. Includes file watcher for auto-regeneration.
-```bash
-node -r dotenv/config scripts/reporter.js
-```
-
----
-
 ## 👥 User Management
 
-### Super Admin System
+### Role Hierarchy
 
-MonkiHub uses a **Super Admin** role hierarchy:
-
-| Role | Create Admins | Manage Tasks | Delete Users | View Logs |
-|---|---|---|---|---|
-| **Super Admin** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Admin** | ❌ No | ✅ Yes | ✅ Yes | ✅ Yes |
-| **User** | ❌ No | ❌ No | ❌ No | ❌ No |
+| Role | Create Admins | Word Filter | Ban Users | Manage Tasks | Delete Users | View Logs |
+|---|---|---|---|---|---|---|
+| **Super Admin** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Admin** | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **User** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ### Create Admin from Website (Super Admin Only)
-
-1. Login as **Super Admin** (`admin`)
+1. Login as Super Admin (`admin`)
 2. Go to **Scripts Panel** → **User Manager** → **Start**
-3. Fill in the **"➕ Create New Admin"** form
-4. Click **"Create Admin"**
+3. Fill in the **Create New Admin** form and click **Create Admin**
 
-### Create Admin via Script
+### Create Admin via Terminal
 ```bash
 cd backend
 node createAdmin.js <username> <password> [email]
 ```
 
-### Upgrade to Super Admin
+### Upgrade User to Super Admin
 ```bash
 cd backend
 node makeSuperAdmin.js
@@ -555,46 +487,76 @@ node resetAdminPassword.js
 
 ---
 
+## 🚀 Deployment (Render)
+
+### Data Persistence
+- `users.xml` and `bannedWords.json` are **tracked in Git** — persist across deploys
+- `tasks.xml`, `messages.xml`, `payments.xml`, `logs.xml` reset on each deploy
+- For full persistence, use Render's **persistent disk** (paid feature)
+
+### Deploy Steps
+
+1. Push to GitHub:
+```bash
+git add .
+git commit -m "deploy"
+git push origin main
+```
+
+2. Go to https://render.com → **New +** → **Web Service** → connect your repo
+
+3. Configure:
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+   - **Instance Type**: Free
+
+4. Add Environment Variables in Render dashboard:
+   - `KAFKA_BROKER`, `KAFKA_USERNAME`, `KAFKA_PASSWORD`, `KAFKA_TOPIC`
+   - `JWT_SECRET`
+   - `SERVER_URL` → your Render URL (e.g. `https://monkihub.onrender.com`)
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+
+5. Keep alive 24/7 (optional): https://uptimerobot.com — monitor your Render URL every 5 minutes
+
+---
+
 ## Technologies Used
 
 ### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **Socket.IO** - Real-time bidirectional communication
-- **KafkaJS** - Apache Kafka client
-- **Cloudinary** - Cloud-based image storage and CDN
-- **Multer** - File upload middleware
-- **xml2js** - XML parsing (DOM-based)
-- **bcryptjs** - Password hashing
-- **jsonwebtoken** - JWT authentication
-- **uuid** - Unique ID generation
-- **socket.io-client** - Consumer connects back to server
-- **express-rate-limit** - Rate limiting middleware
-- **express-slow-down** - Gradual speed limiting
-- **helmet** - Security headers (CSP, HSTS, XSS)
-- **hpp** - HTTP Parameter Pollution protection
+- **Node.js** — Runtime environment
+- **Express.js** — Web framework
+- **Socket.IO** — Real-time bidirectional communication
+- **KafkaJS** — Apache Kafka client (embedded consumer)
+- **Cloudinary** — Cloud-based image storage and CDN
+- **xml2js** — XML parsing (DOM-based)
+- **bcryptjs** — Password hashing
+- **jsonwebtoken** — JWT authentication
+- **uuid** — Unique ID generation
+- **express-rate-limit** — Rate limiting
+- **helmet** — Security headers (CSP, HSTS, XSS)
+- **hpp** — HTTP Parameter Pollution protection
 
 ### Frontend
-- **Vanilla JavaScript** - No frameworks
-- **HTML5/CSS3** - Modern web standards
-- **Socket.IO Client** - Real-time updates
+- **Vanilla JavaScript** — No frameworks
+- **HTML5/CSS3** — Modern web standards
+- **Socket.IO Client** — Real-time updates
 
 ### Message Broker
-- **Apache Kafka** (via Redpanda Cloud) - Message broker
-- **Redpanda** - Kafka-compatible serverless broker (free tier)
+- **Apache Kafka** (via Redpanda Cloud or local Docker)
+- **Embedded consumer** inside `server.js` — no separate process needed
 - **Topic**: `monkihub_messages`
 - **Producer**: `messageController.js`
-- **Consumer**: `scripts/consumer.js`
+- **Consumer**: embedded in `server.js` (falls back to in-memory if Kafka unavailable)
 
 ### Data & Transformation
-- **XML** - Primary data storage format
-- **XSLT** - XML to HTML transformations
-- **JSON** - API communication
+- **XML** — Primary data storage format
+- **XSLT** — XML to HTML transformations
+- **JSON** — API communication + `bannedWords.json` persistence
 
 ### Deployment
-- **Render** - Cloud hosting platform
-- **UptimeRobot** - Uptime monitoring
-- **Git/GitHub** - Version control
+- **Render** — Cloud hosting
+- **UptimeRobot** — Uptime monitoring
+- **Git/GitHub** — Version control
 
 ---
 
@@ -603,124 +565,43 @@ node resetAdminPassword.js
 ### ✅ Messaging System (Kafka)
 - Apache Kafka producer-consumer pattern
 - Messages published to Kafka topic `monkihub_messages`
-- Consumer subscribes, processes, and delivers messages
-- Chat breaks when consumer is stopped (demonstrates broker dependency)
-- Socket.IO for real-time delivery after Kafka processing
-- Notification system with bell icon and banners
+- Embedded consumer subscribes, processes, and delivers messages
+- Automatic fallback to in-memory broker if Kafka is unavailable
+- Socket.IO for real-time delivery
 
 ### ✅ XML Data Handling
 - 6 XML files (users, tasks, messages, payments, logs, archive)
 - Structured with meaningful tags and hierarchy
-- Data validity and organization maintained
 
 ### ✅ XML Parsing (DOM)
 - DOM parsing using xml2js library
-- Read and extract data from XML files
-- Display parsed data in web interface
 - CRUD operations on XML data
 
 ### ✅ XSL/XSLT Transformations
 - 3 XSLT files (messages, tasks, logs)
-- Transform XML to HTML for web display
-- Proper styling and formatting
 - XML Viewer panel with raw and transformed views
 
 ### ✅ Scripting Languages (Node.js)
 - 4 automation scripts (consumer, notifier, archiver, reporter)
-- Background services and monitoring
-- System automation and logging
-- Script Manager for UI control
+- Script Manager for UI control with live terminal output
 
 ### ✅ Web Deployment
-- Deployed on Render (accessible online)
-- All features functional in production
+- Deployed on Render
 - 24/7 uptime with UptimeRobot
 
 ---
 
-## System Architecture
+## Changelog
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         Client Layer                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   Browser    │  │    Mobile    │  │   Desktop    │      │
-│  │  (HTML/CSS)  │  │   (Safari)   │  │   (Chrome)   │      │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘      │
-└─────────┼──────────────────┼──────────────────┼─────────────┘
-          │                  │                  │
-          └──────────────────┴──────────────────┘
-                             │
-                    HTTP/WebSocket (Socket.IO)
-                             │
-┌────────────────────────────┴─────────────────────────────────┐
-│                      Application Layer                        │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │              Node.js + Express Server                  │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐            │  │
-│  │  │   Auth   │  │  Tasks   │  │ Messages │            │  │
-│  │  │Controller│  │Controller│  │Controller│  + more    │  │
-│  │  └──────────┘  └──────────┘  └──────────┘            │  │
-│  └────────────────────────────────────────────────────────┘  │
-└───────────────────────────┬───────────────────────────────────┘
-                            │
-              ┌─────────────┴─────────────┐
-              │                           │
-┌─────────────▼──────────┐   ┌───────────▼────────────┐
-│   Apache Kafka Broker  │   │   Background Scripts   │
-│  ┌──────────────────┐  │   │  ┌──────────────────┐  │
-│  │  Redpanda Cloud  │  │   │  │   Consumer.js    │  │
-│  │  (Kafka-compat.) │  │   │  │   Notifier.js    │  │
-│  │  Topic:          │  │   │  │   Archiver.js    │  │
-│  │  monkihub_msgs   │  │   │  │   Reporter.js    │  │
-│  └──────────────────┘  │   │  └──────────────────┘  │
-└────────────────────────┘   └───────────────────────┘
-                                        │
-┌───────────────────────────────────────▼───────────────┐
-│                    Data Layer                          │
-│  ┌──────────────────────────────────────────────────┐ │
-│  │              XML Data Storage                    │ │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐      │ │
-│  │  │users.xml │  │tasks.xml │  │messages  │      │ │
-│  │  │(in Git)  │  │          │  │  .xml    │      │ │
-│  │  └──────────┘  └──────────┘  └──────────┘      │ │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐      │ │
-│  │  │payments  │  │ logs.xml │  │archive   │      │ │
-│  │  │  .xml    │  └──────────┘  │  .xml    │      │ │
-│  │  └──────────┘                └──────────┘      │ │
-│  └──────────────────────────────────────────────────┘ │
-│  ┌──────────────────────────────────────────────────┐ │
-│  │           XSLT Transformations                   │ │
-│  │  messages.xslt │ tasks.xslt │ logs.xslt         │ │
-│  └──────────────────────────────────────────────────┘ │
-└────────────────────────────────────────────────────────┘
-```
-
----
-
-## Contributing
-
-This is an academic project. Contributions are welcome for educational purposes.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## License
-
-This project is created for educational purposes as part of a Web-Based Systems course.
-
----
-
-## Acknowledgments
-
-- Built as a final project for Web-Based Systems course
-- Demonstrates Apache Kafka producer-consumer pattern, XML processing, XSLT transformations, and automation scripting
-- Special thanks to all team members who contributed to this project
+### Latest Updates
+- **Embedded Kafka Consumer** — consumer now runs inside the server automatically, no second terminal needed
+- **Message Manager Panel** — replaces the old consumer script card; includes ban/unban users and word filter
+- **Word Filter** — bad words replaced with `***`, list persisted to `bannedWords.json`
+- **Bad Word Strike System** — 3 strikes = 5-minute mute, with animated popup warnings
+- **Warning Popup** — centered modal with emoji, word pill badge, strike dots, and progress bar
+- **Notification Fix** — notifications no longer fire when the conversation is already open
+- **Duplicate Message Fix** — removed multiple subscriber registrations that caused messages to appear 3 times
+- **5-Second Cooldown** — enforced server-side with live countdown on Send button
 
 ---
 
